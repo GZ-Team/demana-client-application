@@ -1,19 +1,20 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { electronApp, optimizer } from '@electron-toolkit/utils'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 
-import icon from '../../resources/demana-logo.png?asset'
+import { isDev } from './utils/configUtils'
 
 import StorageService from './services/storageService'
 import SessionService from './services/sessionService'
 import PrinterService from './services/printerService'
 
+import icon from '../../resources/demana.png'
+
 let mainWindow: BrowserWindow
 
 const userDataStore = new StorageService('userData', 'configuration.json')
 
-let sessionService: SessionService
 let printerService: PrinterService
 
 function createWindow(): BrowserWindow {
@@ -22,12 +23,12 @@ function createWindow(): BrowserWindow {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: !is.dev,
+    autoHideMenuBar: !isDev(),
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      devTools: is.dev,
+      devTools: isDev(),
       contextIsolation: true
     }
   })
@@ -43,21 +44,23 @@ function createWindow(): BrowserWindow {
 
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+  if (isDev() && process.env['ELECTRON_RENDERER_URL']) {
     window.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     window.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  if (is.dev) {
+  if (isDev()) {
     window.webContents.openDevTools()
+  } else {
+    Menu.setApplicationMenu(null)
   }
 
   return window
 }
 
 function getOrCreateMainWindow(): BrowserWindow {
-  return !mainWindow ? createWindow() : mainWindow
+  return mainWindow || createWindow()
 }
 
 function initializeIpcHandlers(): void {
@@ -69,7 +72,7 @@ function initializeIpcHandlers(): void {
 function initializeServices(): void {
   const { id } = getOrCreateMainWindow()
 
-  sessionService = new SessionService(id)
+  new SessionService(id)
   printerService = new PrinterService(userDataStore)
 }
 
@@ -98,7 +101,7 @@ app.whenReady().then(async () => {
     if (BrowserWindow.getAllWindows().length === 0) getOrCreateMainWindow()
   })
 
-  if (is.dev) {
+  if (isDev()) {
     try {
       await installExtension(VUEJS_DEVTOOLS)
       console.log('Vue devtools are installed!')
@@ -106,7 +109,6 @@ app.whenReady().then(async () => {
       console.error('Failed to install Vue devtools', exception)
     }
   }
-  // replace param with the ext ID of your choice
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

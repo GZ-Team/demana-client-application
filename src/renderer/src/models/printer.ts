@@ -17,7 +17,7 @@ export class Printer {
 
             const script = new EscPosScript().printText("Demana").complete()
 
-            console.log(script)
+            console.log({ script, textBytes })
 
             // let test = new Uint8Array(10 + new TextEncoder().encode("Demana").length)
 

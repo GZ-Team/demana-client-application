@@ -1,8 +1,20 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/main/*", "src/main/services/*", "src/preload/*"],
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "include": [
+    "src/renderer/src/env.d.ts",
+    "src/renderer/src/**/*",
+    "src/renderer/src/**/*.vue",
+    "src/renderer/src/pages/**/*.vue",
+    "src/renderer/src/components/**/*.vue",
+    "src/renderer/src/layouts/*.vue"
+  ],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"]
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": [
+        "./src/renderer/src/*"
+      ]
+    }
   }
 }

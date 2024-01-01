@@ -34,3 +34,7 @@ $ pnpm build:mac
 # For Linux
 $ pnpm build:linux
 ```
+
+## Future considerations
+
+- [Electronegativity](https://github.com/doyensec/electronegativity)

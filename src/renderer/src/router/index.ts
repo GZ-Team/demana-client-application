@@ -1,8 +1,8 @@
 import * as VueRouter from 'vue-router'
 
-import DefaultLayout from '@renderer/layouts/default.vue'
+import DefaultLayout from '../layouts/default.vue'
 
-import PrintersPage from '@renderer/pages/printers.vue'
+import PrintersPage from '../pages/printers.vue'
 
 const routes = [
   {

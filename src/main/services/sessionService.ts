@@ -36,12 +36,12 @@ export default class {
     this.windowSession.on('select-usb-device', (event, details, callback) => {
       // Add events to handle devices being added or removed before the callback on `select-usb-device` is called.
 
-      this.windowSession.on('usb-device-added', (event, device) => {
+      this.windowSession.on('usb-device-added', (_event, _device) => {
         // console.log('usb-device-added FIRED WITH', device)
         // Optionally update details.deviceList
       })
 
-      this.windowSession.on('usb-device-removed', (event, device) => {
+      this.windowSession.on('usb-device-removed', (_event, _device) => {
         // console.log('usb-device-removed FIRED WITH', device)
         // Optionally update details.deviceList
       })
@@ -61,15 +61,15 @@ export default class {
   }
 
   private addSerialDeviceEventHandlers(): void {
-    this.windowSession.on('select-serial-port', (event, portList, webContents, callback) => {
+    this.windowSession.on('select-serial-port', (event, portList, _webContents, callback) => {
       // Add listeners to handle ports being added or removed before the callback for `select-serial-port`
       // is called.
-      this.windowSession.on('serial-port-added', (event, port) => {
+      this.windowSession.on('serial-port-added', (_event, port) => {
         console.log('serial-port-added FIRED WITH', port)
         // Optionally update portList to add the new port
       })
 
-      this.windowSession.on('serial-port-removed', (event, port) => {
+      this.windowSession.on('serial-port-removed', (_event, port) => {
         console.log('serial-port-removed FIRED WITH', port)
         // Optionally update portList to remove the port
       })
@@ -97,13 +97,13 @@ export default class {
   }
 
   private addPermissionRequestHandler(): void {
-    this.windowSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    this.windowSession.setPermissionRequestHandler((_webContents, permission, callback) => {
       callback(ALLOWED_PERMISSIONS.includes(permission))
     })
   }
 
   private addDevicePermissionHandler(): void {
-    this.windowSession.setDevicePermissionHandler(({ device, deviceType, origin }) => {
+    this.windowSession.setDevicePermissionHandler(({ device, deviceType }) => {
       // TODO: INCREASE SECURITY BY CHECKING DETAILS (device, deviceType, origin)
       // console.log('SET PERMISSION', { device, deviceType, origin })
 
@@ -122,7 +122,7 @@ export default class {
 
   private addPermissionCheckHandler(): void {
     this.windowSession.setPermissionCheckHandler(
-      (webContents, permission, requestingOrigin, details) => {
+      (_webContents, permission, _requestingOrigin, _details) => {
         // if (new URL(requestingOrigin).hostname === 'some-host' && permission === 'notifications') {
         //     return true // granted
         // }

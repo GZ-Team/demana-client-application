@@ -1,13 +1,15 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import App from '@renderer/App.vue'
+import App from './App.vue'
 
 const pinia = createPinia()
-import router from '@renderer/router'
+import router from './router'
 
-import '@renderer/assets/styling/_main.scss'
+import './assets/styling/_main.scss'
 
-import globalComponents from '@renderer/plugins/globalComponents'
+import errorHandler from './plugins/errorHandler'
+import deviceEventListeners from './plugins/deviceEventListeners'
+import globalComponents from './plugins/globalComponents'
 
-createApp(App).use(pinia).use(router).use(globalComponents).mount('#demana-client-application')
+createApp(App).use(pinia).use(router).use(errorHandler).use(deviceEventListeners).use(globalComponents).mount('#demana-client-application')

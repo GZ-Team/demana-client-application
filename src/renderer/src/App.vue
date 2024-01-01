@@ -1,26 +1,19 @@
 <template>
-  <router-view />
+  <d-error v-if="hasErrorOccured" :error="error" />
+  <router-view v-else />
 </template>
 
 <script setup lang="ts">
-// TODO: MOVE TO PLUGIN
-import { useDeviceStore } from '../src/stores/deviceStore'
+import { ref, computed, onErrorCaptured } from 'vue';
 
-const { loadAllUsbPrinters, loadAllSerialPrinters } = useDeviceStore()
+import type { Ref } from 'vue'
+import type { DemanaError } from './types';
 
-navigator.usb.addEventListener('connect', async (event) => {
-  await loadAllUsbPrinters()
-});
+const error = ref(null) as Ref<DemanaError | null>
 
-navigator.usb.addEventListener('disconnect', async (event) => {
-  await loadAllUsbPrinters()
-});
+const hasErrorOccured = computed(() => !!error.value)
 
-navigator.serial.addEventListener('connect', async (event) => {
-  await loadAllSerialPrinters()
-});
-
-navigator.serial.addEventListener('disconnect', async (event) => {
-  await loadAllSerialPrinters()
-});
+onErrorCaptured(({ name, message, stack }, _instance, info) => {
+  error.value = { name, message, stack, info }
+})
 </script>

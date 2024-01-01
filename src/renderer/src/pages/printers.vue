@@ -25,6 +25,10 @@ const computedSelectedPrinterId = computed({
 })
 
 async function handlePrinterTest(): Promise<void> {
+  if (!selectedPrinter.value) {
+    return
+  }
+
   const printer = new Printer(selectedPrinter.value)
 
   await printer.printText('')
@@ -41,6 +45,6 @@ onMounted(async () => {
 
     <d-select v-model="computedSelectedPrinterId" :options="printersAsOptions" />
 
-    <d-button @click="handlePrinterTest">Test</d-button>
+    <d-button :disabled="!selectedPrinter" @click="handlePrinterTest">Test</d-button>
   </d-grid>
 </template>
