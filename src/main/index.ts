@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, Notification } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
@@ -8,10 +8,13 @@ import { isDev } from './utils/configUtils'
 import StorageService from './services/storageService'
 import SessionService from './services/sessionService'
 import PrinterService from './services/printerService'
+import TrayService from './services/trayService'
 
 import icon from '../../resources/demana.png'
 
 let mainWindow: BrowserWindow
+
+let isApplicationBeingClosed = false
 
 const userDataStore = new StorageService('userData', 'configuration.json')
 
@@ -34,7 +37,7 @@ function createWindow(): BrowserWindow {
   })
 
   window.on('ready-to-show', () => {
-    mainWindow.show()
+    window.show()
   })
 
   window.webContents.setWindowOpenHandler((details) => {
@@ -60,7 +63,11 @@ function createWindow(): BrowserWindow {
 }
 
 function getOrCreateMainWindow(): BrowserWindow {
-  return mainWindow || createWindow()
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    mainWindow = createWindow()
+  }
+
+  return mainWindow
 }
 
 function initializeIpcHandlers(): void {
@@ -73,12 +80,52 @@ function initializeServices(): void {
   const { id } = getOrCreateMainWindow()
 
   new SessionService(id)
+
+  new TrayService({
+    icon,
+    contextMenuContent: [
+      {
+        label: 'Demana Client Application', enabled: false
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Open', type: 'normal', click: () => showMainWindow(), role: 'reload'
+      },
+      {
+        label: 'Exit', type: 'normal', click: () => quitApplication(), role: 'quit'
+      }
+    ]
+  })
+    .buildTrayContextMenu()
+    .on('click', () => showMainWindow())
+
   printerService = new PrinterService(userDataStore)
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+function showMainWindow(): void {
+  const mainWindow = getOrCreateMainWindow()
+
+  if (!mainWindow.isVisible()) {
+    mainWindow.show()
+  }
+
+  if (!mainWindow.isFocused()) {
+    mainWindow.focus()
+  }
+}
+
+function quitApplication() {
+  isApplicationBeingClosed = true
+  app.quit()
+}
+
+/**
+ * This method will be called when Electron has finished
+ * initialization and is ready to create browser windows.
+ * Some APIs can only be used after this event occurs.
+*/
 app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('digital.demana')
@@ -92,13 +139,21 @@ app.whenReady().then(async () => {
 
   mainWindow = getOrCreateMainWindow()
 
+  mainWindow.on("close", () => {
+    if (!isApplicationBeingClosed) {
+      new Notification({ title: "The application is not closed.", body: "The application is still running in the background.\nExit the application from the context menu.", icon }).show()
+    }
+  })
+
   initializeIpcHandlers()
   initializeServices()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) getOrCreateMainWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      getOrCreateMainWindow()
+    }
   })
 
   if (isDev()) {
@@ -111,11 +166,13 @@ app.whenReady().then(async () => {
   }
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+/**
+ * Hides the main window, except on macOS.
+ * There, it's common for applications and their menu bar to stay active
+ * until the user quits explicitly with Cmd + Q.
+*/
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (isApplicationBeingClosed) {
     app.quit()
   }
 })
