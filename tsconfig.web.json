@@ -1,6 +1,6 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
-  "exclude": ["./build/**", "./out/**", "./coverage/**"],
+  "exclude": ["./build/**", "./out/**", "./coverage/**", "./electron.vite.config.*.mjs"],
   "compilerOptions": {
     "composite": true,
     "baseUrl": "./src",
