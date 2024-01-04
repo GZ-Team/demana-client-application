@@ -9,8 +9,14 @@ import StorageService from './services/storageService'
 import SessionService from './services/sessionService'
 import PrinterService from './services/printerService'
 import TrayService from './services/trayService'
+import TranslationService from './services/translationService'
 
 import icon from '../../resources/demana.png'
+
+type DemanaWindowOptions = {
+  title?: string,
+  icon: string
+}
 
 let mainWindow: BrowserWindow
 
@@ -18,16 +24,18 @@ let isApplicationBeingClosed = false
 
 const userDataStore = new StorageService('userData', 'configuration.json')
 
+let translationService: TranslationService
 let printerService: PrinterService
 
-function createWindow(): BrowserWindow {
+function createWindow(options: DemanaWindowOptions): BrowserWindow {
   // Create the browser window.
   const window = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
     autoHideMenuBar: !isDev(),
-    icon,
+    title: options.title,
+    icon: options.icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -64,7 +72,7 @@ function createWindow(): BrowserWindow {
 
 function getOrCreateMainWindow(): BrowserWindow {
   if (!mainWindow || mainWindow.isDestroyed()) {
-    mainWindow = createWindow()
+    mainWindow = createWindow({ icon })
   }
 
   return mainWindow
@@ -74,6 +82,14 @@ function initializeIpcHandlers(): void {
   ipcMain.on('setSelectedPrinter', (_event, printerId: string) => {
     printerService.selectedPrinterId = printerId
   })
+
+  ipcMain.handle('getAvailableLocaleCodes', (_event) => {
+    return translationService.availableLocaleCodes
+  })
+
+  ipcMain.handle('getLocaleTranslations', (_event) => {
+    return translationService.translations
+  })
 }
 
 function initializeServices(): void {
@@ -81,20 +97,24 @@ function initializeServices(): void {
 
   new SessionService(id)
 
+  translationService = new TranslationService(app.getLocale())
+
+  const { translate } = translationService
+
   new TrayService({
     icon,
     contextMenuContent: [
       {
-        label: 'Demana Client Application', enabled: false
+        label: translate("globals.applicationName"), enabled: false
       },
       {
         type: 'separator'
       },
       {
-        label: 'Open', type: 'normal', click: () => showMainWindow(), role: 'reload'
+        label: translate("tray.actions.open"), type: 'normal', click: () => showMainWindow(), role: 'reload'
       },
       {
-        label: 'Exit', type: 'normal', click: () => quitApplication(), role: 'quit'
+        label: translate("tray.actions.exit"), type: 'normal', click: () => beforeApplicationExit(), role: 'quit'
       }
     ]
   })
@@ -116,9 +136,8 @@ function showMainWindow(): void {
   }
 }
 
-function quitApplication() {
+function beforeApplicationExit(): void {
   isApplicationBeingClosed = true
-  app.quit()
 }
 
 /**
@@ -141,20 +160,20 @@ app.whenReady().then(async () => {
 
   mainWindow.on("close", () => {
     if (!isApplicationBeingClosed) {
-      new Notification({ title: "The application is not closed.", body: "The application is still running in the background.\nExit the application from the context menu.", icon }).show()
+      const { translate } = translationService
+
+      new Notification({
+        title: translate('notifications.runningInbackground.title'),
+        body: translate('notifications.runningInbackground.message'),
+        icon
+      }).show()
     }
   })
 
   initializeIpcHandlers()
   initializeServices()
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) {
-      getOrCreateMainWindow()
-    }
-  })
+  mainWindow.setTitle(translationService.translate("globals.applicationName"))
 
   if (isDev()) {
     try {
@@ -164,6 +183,14 @@ app.whenReady().then(async () => {
       console.error('Failed to install Vue devtools', exception)
     }
   }
+
+  app.on('activate', function () {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0) {
+      getOrCreateMainWindow()
+    }
+  })
 })
 
 /**
@@ -175,4 +202,11 @@ app.on('window-all-closed', () => {
   if (isApplicationBeingClosed) {
     app.quit()
   }
+})
+
+/**
+ * Actions done before ending the application.
+*/
+app.on('before-quit', () => {
+  beforeApplicationExit()
 })

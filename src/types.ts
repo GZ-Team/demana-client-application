@@ -32,6 +32,15 @@ export enum TicketType {
   TEST_TICKET
 }
 
-export type DemanaSessionOptions = {
-  persist?: boolean
+export type DemanaLocaleTranslationItem = Record<string, string>
+
+export type DemanaLocaleTranslation = {
+  [key: string]: DemanaLocaleTranslationItem | DemanaLocaleTranslation
 }
+
+export type DemanaLocaleTranslationDto = {
+  locale: string,
+  translations: DemanaLocaleTranslation
+}
+
+export type DemanaApiEndPoint = 'setSelectedPrinter' | 'getLocaleTranslations'
