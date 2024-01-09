@@ -1,12 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-import type { DemanaLocaleTranslation } from 'types'
+import type { DemanaLocaleTranslationDto } from 'types'
 
 export type DemanaClientApi = {
   setSelectedPrinter: (printerId: string | number) => void
   getAvailableLocaleCodes: () => Promise<string[]>
-  getLocaleTranslations: () => Promise<DemanaLocaleTranslation>
+  getLocaleTranslations: () => Promise<DemanaLocaleTranslationDto>
 }
 
 // Custom APIs for renderer

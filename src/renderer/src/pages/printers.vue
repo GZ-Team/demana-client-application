@@ -20,7 +20,10 @@ const computedSelectedPrinterId = computed({
   },
   set(newPrinterId) {
     selectedPrinter.value = newPrinterId ? usbPrinters.value.find(({ productId }) => productId === newPrinterId) || null : null
-    window.api.setSelectedPrinter(selectedPrinter.value?.productId)
+
+    if (selectedPrinter.value) {
+      window.api.setSelectedPrinter(selectedPrinter.value.productId)
+    }
   }
 })
 

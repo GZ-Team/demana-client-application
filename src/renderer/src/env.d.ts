@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import { DemanaClientApi } from '@/preload'
+import { DemanaClientApi } from '../../preload/index'
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
