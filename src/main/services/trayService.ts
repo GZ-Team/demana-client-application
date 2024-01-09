@@ -3,13 +3,13 @@ import { Tray, Menu, nativeImage } from "electron";
 import type { NativeImage, MenuItemConstructorOptions, MenuItem } from 'electron'
 
 export type TrayServiceOptions = {
-    icon: string
+    icon: NativeImage
     contextToolTip?: string
     contextMenuContent?: (MenuItemConstructorOptions | MenuItem)[]
 }
 
 export default class {
-    private icon: string;
+    private icon: NativeImage;
     private contextToolTip: string;
     private contextMenuContent: (MenuItemConstructorOptions | MenuItem)[];
 
@@ -19,16 +19,12 @@ export default class {
         this.contextMenuContent = options.contextMenuContent || []
     }
 
-    get trayIcon(): NativeImage {
-        return nativeImage.createFromDataURL(this.icon)
-    }
-
     get contextMenu(): Menu {
         return Menu.buildFromTemplate(this.contextMenuContent)
     }
 
     buildTrayContextMenu(): Tray {
-        const tray = new Tray(this.trayIcon)
+        const tray = new Tray(this.icon)
 
         tray.setToolTip(this.contextToolTip)
         tray.setContextMenu(this.contextMenu)

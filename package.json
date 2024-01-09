@@ -9,7 +9,7 @@
     "preinstall": "npx only-allow pnpm",
     "postinstall": "electron-builder install-app-deps",
     "dev": "electron-vite dev",
-    "dev:hot-reload": "electron-vite dev --watch",
+    "dev:watch": "electron-vite dev --watch",
     "start": "electron-vite preview",
     "test": "jest",
     "prepare": "pnpm run type-check && pnpm test",

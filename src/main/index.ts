@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, Menu, Notification } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu, Notification, nativeImage, NativeImage } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
@@ -11,11 +11,11 @@ import PrinterService from './services/printerService'
 import TrayService from './services/trayService'
 import TranslationService from './services/translationService'
 
-import icon from '../../resources/demana.png'
+import demanaLogo from '../../resources/demana.png'
 
 type DemanaWindowOptions = {
   title?: string,
-  icon: string
+  icon: NativeImage
 }
 
 let mainWindow: BrowserWindow
@@ -26,6 +26,8 @@ const userDataStore = new StorageService('userData', 'configuration.json')
 
 let translationService: TranslationService
 let printerService: PrinterService
+
+const icon = nativeImage.createFromDataURL(demanaLogo)
 
 function createWindow(options: DemanaWindowOptions): BrowserWindow {
   // Create the browser window.
