@@ -6,8 +6,11 @@
     "baseUrl": "./src",
     "allowJs": true,
     "paths": {
-      "@renderer/*": [
-        "./renderer/src/*"
+      "@ui/*": [
+        "./renderer/ui/src/*"
+      ],
+      "@worker/*": [
+        "./renderer/worker/src/*"
       ]
     }
   }

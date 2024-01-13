@@ -1,13 +1,13 @@
-import { is } from '@electron-toolkit/utils'
+import { is } from '@electron-toolkit/utils';
 
 export function getEnvMode(): string {
-    return import.meta.env.MODE
+  return import.meta.env.MODE;
 }
 
 export function isLocal(): boolean {
-    return is.dev
+  return is.dev;
 }
 
 export function isDev(): boolean {
-    return getEnvMode() === 'development'
+  return getEnvMode() === 'development';
 }

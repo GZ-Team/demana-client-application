@@ -1,23 +1,41 @@
-import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
-import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path';
+import { defineConfig, externalizeDepsPlugin, bytecodePlugin } from 'electron-vite';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    build: {
+      rollupOptions: {
+        input: {
+          worker: resolve(__dirname, 'src/preload/workerPreload.ts'),
+          ui: resolve(__dirname, 'src/preload/uiPreload.ts'),
+          default: resolve(__dirname, 'src/preload/defaultPreload.ts')
+        }
+      }
+    },
+    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
   },
   renderer: {
+    build: {
+      rollupOptions: {
+        input: {
+          worker: resolve(__dirname, 'src/renderer/worker/index.html'),
+          ui: resolve(__dirname, 'src/renderer/ui/index.html')
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': resolve('src'),
         '@main': resolve('src/main'),
         '@preload': resolve('src/preload'),
-        '@renderer': resolve('src/renderer/src')
+        '@ui': resolve('src/renderer/ui/src'),
+        '@worker': resolve('src/renderer/worker/src')
       }
     },
-    plugins: [vue()]
+    plugins: [vue(), bytecodePlugin()]
   }
-})
+});

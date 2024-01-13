@@ -1,35 +1,30 @@
-import { BrowserWindow } from 'electron'
+import { BrowserWindow } from 'electron';
 
-import type { SerialPort, Session, USBDevice } from 'electron'
+import type { SerialPort, Session, USBDevice } from 'electron';
 
-const ALLOWED_PERMISSIONS = [
-  'usb',
-  'serial'
-]
+const ALLOWED_PERMISSIONS = ['usb', 'serial'];
 
 export default class {
-  private grantedDeviceThroughPermHandler: SerialPort | USBDevice | null = null
+  private grantedDeviceThroughPermHandler: SerialPort | USBDevice | null = null;
 
-  constructor(
-    private windowId: number
-  ) {
-    this.setup()
+  constructor(private windowId: number) {
+    this.setup();
   }
 
   get windowSession(): Session {
-    const selectedWindow = BrowserWindow.fromId(this.windowId)
+    const selectedWindow = BrowserWindow.fromId(this.windowId);
 
     if (!selectedWindow) {
-      throw new Error(`Failed to find BrowserWindow with id: ${this.windowId}`)
+      throw new Error(`Failed to find BrowserWindow with id: ${this.windowId}`);
     }
 
-    return selectedWindow.webContents.session
+    return selectedWindow.webContents.session;
   }
 
   private setup(): void {
-    this.addUsbDeviceEventHandlers()
-    this.addSerialDeviceEventHandlers()
-    this.addDevicePermissionHandeling()
+    this.addUsbDeviceEventHandlers();
+    this.addSerialDeviceEventHandlers();
+    this.addDevicePermissionHandeling();
   }
 
   private addUsbDeviceEventHandlers(): void {
@@ -39,25 +34,25 @@ export default class {
       this.windowSession.on('usb-device-added', (_event, _device) => {
         // console.log('usb-device-added FIRED WITH', device)
         // Optionally update details.deviceList
-      })
+      });
 
       this.windowSession.on('usb-device-removed', (_event, _device) => {
         // console.log('usb-device-removed FIRED WITH', device)
         // Optionally update details.deviceList
-      })
+      });
 
-      event.preventDefault()
+      event.preventDefault();
 
-      const deviceToReturn = (details.deviceList || []).find((device) =>
-        device.productId === this.grantedDeviceThroughPermHandler?.productId
-      )
+      const deviceToReturn = (details.deviceList || []).find(
+        (device) => device.productId === this.grantedDeviceThroughPermHandler?.productId
+      );
 
       if (deviceToReturn) {
-        callback(deviceToReturn.deviceId)
+        callback(deviceToReturn.deviceId);
       } else {
-        callback()
+        callback();
       }
-    })
+    });
   }
 
   private addSerialDeviceEventHandlers(): void {
@@ -65,41 +60,41 @@ export default class {
       // Add listeners to handle ports being added or removed before the callback for `select-serial-port`
       // is called.
       this.windowSession.on('serial-port-added', (_event, port) => {
-        console.log('serial-port-added FIRED WITH', port)
+        console.log('serial-port-added FIRED WITH', port);
         // Optionally update portList to add the new port
-      })
+      });
 
       this.windowSession.on('serial-port-removed', (_event, port) => {
-        console.log('serial-port-removed FIRED WITH', port)
+        console.log('serial-port-removed FIRED WITH', port);
         // Optionally update portList to remove the port
-      })
+      });
 
-      event.preventDefault()
+      event.preventDefault();
 
-      const deviceToReturn = (portList || []).find((device) =>
-        device.productId === this.grantedDeviceThroughPermHandler?.productId
-      )
+      const deviceToReturn = (portList || []).find(
+        (device) => device.productId === this.grantedDeviceThroughPermHandler?.productId
+      );
 
-      console.log({ deviceToReturn, portList })
+      console.log({ deviceToReturn, portList });
 
       if (deviceToReturn) {
-        callback(deviceToReturn.portId)
+        callback(deviceToReturn.portId);
       } else {
-        callback('')
+        callback('');
       }
-    })
+    });
   }
 
   private addDevicePermissionHandeling(): void {
-    this.addPermissionRequestHandler()
-    this.addDevicePermissionHandler()
-    this.addPermissionCheckHandler()
+    this.addPermissionRequestHandler();
+    this.addDevicePermissionHandler();
+    this.addPermissionCheckHandler();
   }
 
   private addPermissionRequestHandler(): void {
     this.windowSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-      callback(ALLOWED_PERMISSIONS.includes(permission))
-    })
+      callback(ALLOWED_PERMISSIONS.includes(permission));
+    });
   }
 
   private addDevicePermissionHandler(): void {
@@ -109,15 +104,15 @@ export default class {
 
       switch (deviceType) {
         case 'serial':
-          this.grantedDeviceThroughPermHandler = <SerialPort>device
-          return !!device['device_instance_id']
+          this.grantedDeviceThroughPermHandler = <SerialPort>device;
+          return !!device['device_instance_id'];
         case 'usb':
-          this.grantedDeviceThroughPermHandler = <USBDevice>device
-          return !!this.grantedDeviceThroughPermHandler.productId
+          this.grantedDeviceThroughPermHandler = <USBDevice>device;
+          return !!this.grantedDeviceThroughPermHandler.productId;
         default:
-          return false
+          return false;
       }
-    })
+    });
   }
 
   private addPermissionCheckHandler(): void {
@@ -127,10 +122,10 @@ export default class {
         //     return true // granted
         // }
 
-        return ALLOWED_PERMISSIONS.includes(permission)
+        return ALLOWED_PERMISSIONS.includes(permission);
 
         //return false // denied
       }
-    )
+    );
   }
 }

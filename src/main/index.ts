@@ -1,188 +1,216 @@
-import { app, shell, BrowserWindow, ipcMain, Menu, Notification, nativeImage, NativeImage } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer } from '@electron-toolkit/utils'
-import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+import { DemanaEvent, DemanaMessage } from './../types';
+import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
+import { join } from 'path';
+import { electronApp, optimizer } from '@electron-toolkit/utils';
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 
-import { isDev } from './utils/configUtils'
+import { isDev } from './utils/configUtils';
 
-import StorageService from './services/storageService'
-import SessionService from './services/sessionService'
-import PrinterService from './services/printerService'
-import TrayService from './services/trayService'
-import TranslationService from './services/translationService'
+import StorageService from './services/storageService';
+import SessionService from './services/sessionService';
+import PrinterService from './services/printerService';
+import TrayService from './services/trayService';
+import TranslationService from './services/translationService';
+import NotificationService from './services/notificationService';
+import ProcessService, { DemanaPreloadScriptPath } from './services/processService';
 
-import demanaLogo from '../../resources/demana.png'
+import demanaLogo from '../../resources/demana.png';
 
-type DemanaWindowOptions = {
-  title?: string,
-  icon: NativeImage
-}
+let isApplicationBeingClosed = false;
+const icon = nativeImage.createFromDataURL(demanaLogo);
 
-let mainWindow: BrowserWindow
+const userDataStore = new StorageService('userData', 'configuration.json');
+let translationService: TranslationService;
+let printerService: PrinterService;
+const notificationService = new NotificationService(icon);
+const processService = new ProcessService();
 
-let isApplicationBeingClosed = false
+let mainWorkerProcess: BrowserWindow;
+let mainUiProcess: BrowserWindow;
 
-const userDataStore = new StorageService('userData', 'configuration.json')
-
-let translationService: TranslationService
-let printerService: PrinterService
-
-const icon = nativeImage.createFromDataURL(demanaLogo)
-
-function createWindow(options: DemanaWindowOptions): BrowserWindow {
-  // Create the browser window.
-  const window = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: !isDev(),
-    title: options.title,
-    icon: options.icon,
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      devTools: isDev(),
-      contextIsolation: true
-    }
-  })
-
-  window.on('ready-to-show', () => {
-    window.show()
-  })
-
-  window.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (isDev() && process.env['ELECTRON_RENDERER_URL']) {
-    window.loadURL(process.env['ELECTRON_RENDERER_URL'])
-  } else {
-    window.loadFile(join(__dirname, '../renderer/index.html'))
+function getOrCreateMainUiProcess(): BrowserWindow {
+  if (!mainUiProcess || mainUiProcess.isDestroyed()) {
+    mainUiProcess = processService.createProcess('ui', {
+      window: {
+        icon,
+        content: join(__dirname, '../renderer/ui/index.html'),
+        preload: DemanaPreloadScriptPath.UI
+      },
+      mode: isDev() ? 'development' : 'production'
+    });
   }
 
-  if (isDev()) {
-    window.webContents.openDevTools()
-  } else {
-    Menu.setApplicationMenu(null)
-  }
-
-  return window
-}
-
-function getOrCreateMainWindow(): BrowserWindow {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    mainWindow = createWindow({ icon })
-  }
-
-  return mainWindow
+  return mainUiProcess;
 }
 
 function initializeIpcHandlers(): void {
+  // ONE-WAY ACTIONS
   ipcMain.on('setSelectedPrinter', (_event, printerId: string) => {
-    printerService.selectedPrinterId = printerId
-  })
+    printerService.selectedPrinterId = printerId;
+  });
+
+  ipcMain.on('sendMessage', (_event, message: DemanaMessage) => {
+    try {
+      switch (message.target) {
+        case 'ui':
+          return pushEventToProcess<DemanaMessage>(
+            { name: '@messages:new', value: message },
+            mainUiProcess
+          );
+        case 'worker':
+          return pushEventToProcess<DemanaMessage>(
+            { name: '@messages:new', value: message },
+            mainWorkerProcess
+          );
+        default:
+          throw new Error(`'${message.target}' is not a valid message target.`);
+      }
+    } catch (exception) {
+      throw new Error(`Failed to process a received message: ${(exception as Error).message}`);
+    }
+  });
+
+  // TWO-WAY ACTIONS
+  ipcMain.handle('getSelectedPrinter', (_event) => {
+    return printerService.selectedPrinterId;
+  });
 
   ipcMain.handle('getAvailableLocaleCodes', (_event) => {
-    return translationService.availableLocaleCodes
-  })
+    return translationService.availableLocaleCodes;
+  });
 
   ipcMain.handle('getLocaleTranslations', (_event) => {
-    return translationService.translations
-  })
+    return translationService.translations;
+  });
 }
 
 function initializeServices(): void {
-  const { id } = getOrCreateMainWindow()
+  const { id } = getOrCreateMainUiProcess();
 
-  new SessionService(id)
+  new SessionService(id);
 
-  translationService = new TranslationService(app.getLocale())
+  translationService = new TranslationService(app.getLocale());
 
-  const { translate } = translationService
+  const { translate } = translationService;
 
   new TrayService({
     icon,
     contextMenuContent: [
       {
-        label: translate("globals.applicationName"), enabled: false
+        label: translate('globals.applicationName'),
+        enabled: false
       },
       {
         type: 'separator'
       },
       {
-        label: translate("tray.actions.open"), type: 'normal', click: () => showMainWindow(), role: 'reload'
+        label: translate('tray.actions.open'),
+        type: 'normal',
+        click: () => showMainUiProcess(),
+        role: 'reload'
       },
       {
-        label: translate("tray.actions.exit"), type: 'normal', click: () => beforeApplicationExit(), role: 'quit'
+        label: translate('tray.actions.exit'),
+        type: 'normal',
+        click: () => beforeApplicationExit(),
+        role: 'quit'
       }
     ]
   })
     .buildTrayContextMenu()
-    .on('click', () => showMainWindow())
+    .on('click', () => showMainUiProcess());
 
-  printerService = new PrinterService(userDataStore)
+  printerService = new PrinterService(userDataStore);
 }
 
-function showMainWindow(): void {
-  const mainWindow = getOrCreateMainWindow()
+function showMainUiProcess(): void {
+  const mainUiProcess = getOrCreateMainUiProcess();
 
-  if (!mainWindow.isVisible()) {
-    mainWindow.show()
+  if (!mainUiProcess.isVisible()) {
+    mainUiProcess.show();
   }
 
-  if (!mainWindow.isFocused()) {
-    mainWindow.focus()
+  if (!mainUiProcess.isFocused()) {
+    mainUiProcess.focus();
   }
 }
 
 function beforeApplicationExit(): void {
-  isApplicationBeingClosed = true
+  isApplicationBeingClosed = true;
+}
+
+function pushEventToProcess<T>(event: DemanaEvent<T>, process: BrowserWindow): void {
+  try {
+    process.webContents.send(event.name, event.value);
+  } catch (exception) {
+    throw new Error(
+      `Failed to push an event to process '${process.title} [${process.id}]': ${
+        (exception as Error).message
+      }`
+    );
+  }
 }
 
 /**
  * This method will be called when Electron has finished
  * initialization and is ready to create browser windows.
  * Some APIs can only be used after this event occurs.
-*/
+ */
 app.whenReady().then(async () => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('digital.demana')
+  electronApp.setAppUserModelId('digital.demana');
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
+    optimizer.watchWindowShortcuts(window);
+  });
 
-  mainWindow = getOrCreateMainWindow()
-
-  mainWindow.on("close", () => {
-    if (!isApplicationBeingClosed) {
-      const { translate } = translationService
-
-      new Notification({
-        title: translate('notifications.runningInbackground.title'),
-        body: translate('notifications.runningInbackground.message'),
-        icon
-      }).show()
+  mainWorkerProcess = processService.createProcess('worker', {
+    mode: isDev() ? 'development' : 'production',
+    window: {
+      content: join(__dirname, '../renderer/worker/index.html'),
+      icon,
+      preload: DemanaPreloadScriptPath.WORKER
     }
-  })
+  });
+  mainWorkerProcess.on('close', (event) => {
+    if (!isApplicationBeingClosed) {
+      event.preventDefault();
+    }
+  });
 
-  initializeIpcHandlers()
-  initializeServices()
+  mainUiProcess = getOrCreateMainUiProcess();
+  mainUiProcess.on('close', () => {
+    if (!isApplicationBeingClosed) {
+      const { translate } = translationService;
 
-  mainWindow.setTitle(translationService.translate("globals.applicationName"))
+      notificationService.showNotification({
+        title: translate('notifications.runningInbackground.title'),
+        message: translate('notifications.runningInbackground.message'),
+        icon
+      });
+    }
+  });
+
+  initializeIpcHandlers();
+  initializeServices();
+
+  mainUiProcess.setTitle(translationService.translate('globals.applicationName'));
+
+  // TO-DO: remove after development
+  setInterval(
+    () => pushEventToProcess({ name: '@orders:new', value: 'test' }, mainWorkerProcess),
+    10 * 1000
+  );
 
   if (isDev()) {
     try {
-      await installExtension(VUEJS_DEVTOOLS)
-      console.log('Vue devtools are installed!')
+      await installExtension(VUEJS_DEVTOOLS);
+      console.log('Vue devtools are installed!');
     } catch (exception) {
-      console.error('Failed to install Vue devtools', exception)
+      console.error('Failed to install Vue devtools', exception);
     }
   }
 
@@ -190,25 +218,25 @@ app.whenReady().then(async () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) {
-      getOrCreateMainWindow()
+      getOrCreateMainUiProcess();
     }
-  })
-})
+  });
+});
 
 /**
  * Hides the main window, except on macOS.
  * There, it's common for applications and their menu bar to stay active
  * until the user quits explicitly with Cmd + Q.
-*/
+ */
 app.on('window-all-closed', () => {
   if (isApplicationBeingClosed) {
-    app.quit()
+    app.quit();
   }
-})
+});
 
 /**
  * Actions done before ending the application.
-*/
+ */
 app.on('before-quit', () => {
-  beforeApplicationExit()
-})
+  beforeApplicationExit();
+});

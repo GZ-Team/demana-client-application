@@ -1,17 +1,17 @@
 class Device {
-  readonly deviceId: string
-  readonly name: string
+  readonly deviceId: string;
+  readonly name: string;
 
   constructor(deviceId: string, name: string) {
-    this.deviceId = deviceId
-    this.name = name
+    this.deviceId = deviceId;
+    this.name = name;
   }
 }
 
 export class PrinterDevice extends Device {
-  isDefault = false
-  portName: string | null
-  printerStatus: string
+  isDefault = false;
+  portName: string | null;
+  printerStatus: string;
 
   constructor(
     deviceId: string,
@@ -20,10 +20,10 @@ export class PrinterDevice extends Device {
     portName: string,
     printerStatus: string
   ) {
-    super(deviceId, name)
-    this.isDefault = isDefault
-    this.portName = portName
-    this.printerStatus = printerStatus
+    super(deviceId, name);
+    this.isDefault = isDefault;
+    this.portName = portName;
+    this.printerStatus = printerStatus;
   }
 }
 
@@ -32,15 +32,34 @@ export enum TicketType {
   TEST_TICKET
 }
 
-export type DemanaLocaleTranslationItem = Record<string, string>
+export type DemanaLocaleTranslationItem = Record<string, string>;
 
 export type DemanaLocaleTranslation = {
-  [key: string]: DemanaLocaleTranslationItem | DemanaLocaleTranslation
-}
+  [key: string]: DemanaLocaleTranslationItem | DemanaLocaleTranslation;
+};
 
 export type DemanaLocaleTranslationDto = {
-  locale: string,
-  translations: DemanaLocaleTranslation
-}
+  locale: string;
+  translations: DemanaLocaleTranslation;
+};
 
-export type DemanaApiEndPoint = 'setSelectedPrinter' | 'getLocaleTranslations'
+export type DemanaApiEndPoint = 'setSelectedPrinter' | 'getLocaleTranslations';
+
+type DemanaOrderEventName = '@orders:new';
+type DemanaMessageEventName = '@messages:new';
+
+export type DemanaEventName = DemanaOrderEventName | DemanaMessageEventName;
+
+export type DemanaEvent<T> = {
+  name: DemanaEventName;
+  value: T;
+};
+
+export type DemanaProcessType = 'ui' | 'worker';
+
+export type DemanaMessageBody = 'test-printer';
+
+export type DemanaMessage = {
+  target: DemanaProcessType;
+  content: DemanaMessageBody;
+};

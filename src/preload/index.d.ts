@@ -1,10 +1,12 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
+import { ElectronAPI } from '@electron-toolkit/preload';
 
-import { DemanaClientApi } from './index';
+import type { DemanaPreloadApi } from './sharedPreload';
+import type { DemanaUiProcessPreloadApi } from './uiPreload';
+import type { DemanaWorkerProcessPreloadApi } from './workerPreload';
 
 declare global {
   interface Window {
-    electron: ElectronAPI
-    api: DemanaClientApi
+    electron: ElectronAPI;
+    api: DemanaPreloadApi & DemanaUiProcessPreloadApi & DemanaWorkerProcessPreloadApi;
   }
 }
