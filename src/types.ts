@@ -47,8 +47,9 @@ export type DemanaApiEndPoint = 'setSelectedPrinter' | 'getLocaleTranslations';
 
 type DemanaOrderEventName = '@orders:new';
 type DemanaMessageEventName = '@messages:new';
+type DemanaWindowEventName = '@window:new';
 
-export type DemanaEventName = DemanaOrderEventName | DemanaMessageEventName;
+export type DemanaEventName = DemanaOrderEventName | DemanaMessageEventName | DemanaWindowEventName;
 
 export type DemanaEvent<T> = {
   name: DemanaEventName;
@@ -63,3 +64,11 @@ export type DemanaMessage = {
   target: DemanaProcessType;
   content: DemanaMessageBody;
 };
+
+export type DemanaWindowState = {
+  isMinimized: boolean
+  isMaximized: boolean
+  isClosable: boolean
+  minimizable: boolean
+  maximizable: boolean
+}

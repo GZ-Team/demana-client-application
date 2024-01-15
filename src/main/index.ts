@@ -1,10 +1,7 @@
-import { DemanaEvent, DemanaMessage } from './../types';
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
-
-import { isDev } from './utils/configUtils';
 
 import StorageService from './services/storageService';
 import SessionService from './services/sessionService';
@@ -13,6 +10,12 @@ import TrayService from './services/trayService';
 import TranslationService from './services/translationService';
 import NotificationService from './services/notificationService';
 import ProcessService, { DemanaPreloadScriptPath } from './services/processService';
+
+import { isDev } from './utils/configUtils';
+import { pushEventToProcess } from './utils/eventUtils';
+import { getBrowserWindowByProcessWebContents } from './utils/processUtils';
+
+import type { DemanaMessage } from './../types';
 
 import demanaLogo from '../../resources/demana.png';
 
@@ -44,11 +47,7 @@ function getOrCreateMainUiProcess(): BrowserWindow {
 }
 
 function initializeIpcHandlers(): void {
-  // ONE-WAY ACTIONS
-  ipcMain.on('setSelectedPrinter', (_event, printerId: string) => {
-    printerService.selectedPrinterId = printerId;
-  });
-
+  // MESSAGES
   ipcMain.on('sendMessage', (_event, message: DemanaMessage) => {
     try {
       switch (message.target) {
@@ -70,17 +69,77 @@ function initializeIpcHandlers(): void {
     }
   });
 
-  // TWO-WAY ACTIONS
+  // PRINTERS
   ipcMain.handle('getSelectedPrinter', (_event) => {
     return printerService.selectedPrinterId;
   });
 
+  ipcMain.on('setSelectedPrinter', (_event, printerId: string) => {
+    printerService.selectedPrinterId = printerId;
+  });
+
+  // I18N
   ipcMain.handle('getAvailableLocaleCodes', (_event) => {
     return translationService.availableLocaleCodes;
   });
 
   ipcMain.handle('getLocaleTranslations', (_event) => {
     return translationService.translations;
+  });
+
+  // APP BEHAVIOUR
+  ipcMain.handle('minimizeWindow', (event) => {
+    try {
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+
+      if (senderProcess.minimizable) {
+        senderProcess.minimize()
+      }
+
+      return senderProcess.isMinimized()
+    } catch (exception) {
+      throw new Error(`Failed to minimize a window: ${(exception as Error).message}`, { cause: exception })
+    }
+  });
+
+  ipcMain.handle('maximizeWindow', (event) => {
+    try {
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+
+      if (senderProcess.maximizable) {
+        senderProcess.maximize()
+      }
+
+      return senderProcess.isMaximized()
+    } catch (exception) {
+      throw new Error(`Failed to maximize a window: ${(exception as Error).message}`, { cause: exception })
+    }
+  });
+
+  ipcMain.handle('restoreWindow', (event) => {
+    try {
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+
+      senderProcess.unmaximize()
+
+      return senderProcess.isMaximized()
+    } catch (exception) {
+      throw new Error(`Failed to restore a window: ${(exception as Error).message}`, { cause: exception })
+    }
+  });
+
+  ipcMain.handle('closeWindow', (event) => {
+    try {
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+
+      if (senderProcess.closable) {
+        senderProcess.close()
+      }
+
+      return senderProcess.isDestroyed()
+    } catch (exception) {
+      throw new Error(`Failed to close a window: ${(exception as Error).message}`, { cause: exception })
+    }
   });
 }
 
@@ -139,18 +198,6 @@ function beforeApplicationExit(): void {
   isApplicationBeingClosed = true;
 }
 
-function pushEventToProcess<T>(event: DemanaEvent<T>, process: BrowserWindow): void {
-  try {
-    process.webContents.send(event.name, event.value);
-  } catch (exception) {
-    throw new Error(
-      `Failed to push an event to process '${process.title} [${process.id}]': ${
-        (exception as Error).message
-      }`
-    );
-  }
-}
-
 /**
  * This method will be called when Electron has finished
  * initialization and is ready to create browser windows.
@@ -175,6 +222,7 @@ app.whenReady().then(async () => {
       preload: DemanaPreloadScriptPath.WORKER
     }
   });
+
   mainWorkerProcess.on('close', (event) => {
     if (!isApplicationBeingClosed) {
       event.preventDefault();
@@ -182,6 +230,7 @@ app.whenReady().then(async () => {
   });
 
   mainUiProcess = getOrCreateMainUiProcess();
+
   mainUiProcess.on('close', () => {
     if (!isApplicationBeingClosed) {
       const { translate } = translationService;

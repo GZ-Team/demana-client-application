@@ -3,7 +3,6 @@ import { computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { useDeviceStore } from '../stores/deviceStore';
-import { windowsStore } from 'process';
 
 const deviceStore = useDeviceStore();
 const { loadAllPrinters } = deviceStore;
@@ -42,11 +41,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <d-grid rows>
-    <h1>Printers</h1>
+  <v-container fluid>
+    <v-row>
+      <v-col>
+        <h1>Printers</h1>
+      </v-col>
+    </v-row>
 
-    <d-select v-model="computedSelectedPrinterId" :options="printersAsOptions" />
+    <v-row>
+      <v-col>
+        <v-select v-model="computedSelectedPrinterId" no-data-text="No printers to be found" :items="printersAsOptions"
+          item-title="label" item-value="key" />
+      </v-col>
+    </v-row>
 
-    <d-button @click="handlePrinterTest">Test</d-button>
-  </d-grid>
+    <v-row align="center" justify="space-around">
+      <v-col cols="1">
+        <v-btn @click="handlePrinterTest">Test</v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>

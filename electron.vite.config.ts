@@ -1,10 +1,14 @@
 import { resolve } from 'path';
 import { defineConfig, externalizeDepsPlugin, bytecodePlugin } from 'electron-vite';
 import vue from '@vitejs/plugin-vue';
+import vuetify from 'vite-plugin-vuetify';
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
+    plugins: [
+      externalizeDepsPlugin(),
+      bytecodePlugin()
+    ]
   },
   preload: {
     build: {
@@ -16,7 +20,10 @@ export default defineConfig({
         }
       }
     },
-    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
+    plugins: [
+      externalizeDepsPlugin(),
+      bytecodePlugin()
+    ]
   },
   renderer: {
     build: {
@@ -36,6 +43,11 @@ export default defineConfig({
         '@worker': resolve('src/renderer/worker/src')
       }
     },
-    plugins: [vue(), bytecodePlugin()]
+    plugins: [
+      vue(),
+      // https://www.npmjs.com/package/vite-plugin-vuetify
+      vuetify({ autoImport: true }),
+      bytecodePlugin()
+    ]
   }
 });

@@ -7,6 +7,6 @@ import type { DemanaWorkerProcessPreloadApi } from './workerPreload';
 declare global {
   interface Window {
     electron: ElectronAPI;
-    api: DemanaPreloadApi & DemanaUiProcessPreloadApi & DemanaWorkerProcessPreloadApi;
+    api: DemanaUiProcessPreloadApi & DemanaWorkerProcessPreloadApi;
   }
 }

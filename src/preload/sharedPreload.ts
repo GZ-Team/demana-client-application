@@ -1,26 +1,46 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
-import type { DemanaLocaleTranslationDto, DemanaMessage } from 'types';
+import type { DemanaLocaleTranslationDto, DemanaMessage, DemanaWindowState } from 'types';
 
-export interface DemanaPreloadApi {}
+export interface DemanaPreloadApi { }
 
 export type DemanaSharedPreloadApi = DemanaPreloadApi & {
+  // MESSAGES
   sendMessage: (message: DemanaMessage) => void;
+  '@messages:new': (callback: (message: DemanaMessage) => {}) => void;
+  // PRINTERS
   getSelectedPrinter: () => Promise<string>;
+  // I18N
   getAvailableLocaleCodes: () => Promise<string[]>;
   getLocaleTranslations: () => Promise<DemanaLocaleTranslationDto>;
-  '@orders:new': (callback: Function) => void;
-  '@messages:new': (callback: Function) => void;
+  // ORDERS
+  '@orders:new': (callback: (order: unknown) => {}) => void;
+  // APP BEHAVIOUR
+  minimizeWindow: () => Promise<boolean>;
+  maximizeWindow: () => Promise<boolean>;
+  restoreWindow: () => Promise<boolean>;
+  closeWindow: () => Promise<boolean>;
+  '@window:new': (callback: (state: DemanaWindowState) => {}) => void;
 };
 
 export const sharedPreloadApi: DemanaSharedPreloadApi = {
+  // MESSAGES
   sendMessage: (message) => ipcRenderer.send('sendMessage', message),
+  '@messages:new': (callback) => ipcRenderer.on('@messages:new', (_event, value: DemanaMessage) => callback(value)),
+  // PRINTERS
   getSelectedPrinter: () => ipcRenderer.invoke('getSelectedPrinter'),
+  // I18N
   getAvailableLocaleCodes: () => ipcRenderer.invoke('getAvailableLocaleCodes'),
   getLocaleTranslations: () => ipcRenderer.invoke('getLocaleTranslations'),
-  '@orders:new': (callback) => ipcRenderer.on('@orders:new', (_event, value) => callback(value)),
-  '@messages:new': (callback) => ipcRenderer.on('@messages:new', (_event, value) => callback(value))
+  // ORDERS
+  '@orders:new': (callback) => ipcRenderer.on('@orders:new', (_event, value: unknown) => callback(value)),
+  // APP BEHAVIOUR
+  minimizeWindow: () => ipcRenderer.invoke('minimizeWindow'),
+  maximizeWindow: () => ipcRenderer.invoke('maximizeWindow'),
+  restoreWindow: () => ipcRenderer.invoke('restoreWindow'),
+  closeWindow: () => ipcRenderer.invoke('closeWindow'),
+  '@window:new': (callback) => ipcRenderer.on('@window:new', (_event, value: DemanaWindowState) => callback(value))
 };
 
 export function attachApisToProcess(

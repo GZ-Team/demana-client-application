@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { getBrowserWindowByProcessId } from '../utils/processUtils';
 
 import type { SerialPort, Session, USBDevice } from 'electron';
 
@@ -12,13 +12,7 @@ export default class {
   }
 
   get windowSession(): Session {
-    const selectedWindow = BrowserWindow.fromId(this.windowId);
-
-    if (!selectedWindow) {
-      throw new Error(`Failed to find BrowserWindow with id: ${this.windowId}`);
-    }
-
-    return selectedWindow.webContents.session;
+    return getBrowserWindowByProcessId(this.windowId).webContents.session
   }
 
   private setup(): void {

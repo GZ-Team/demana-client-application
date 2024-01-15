@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import MainFrame from '../components/MainFrame.vue';
+</script>
+
 <template>
-  <router-view />
+  <v-layout>
+    <main-frame />
+
+    <v-main>
+      <router-view />
+    </v-main>
+  </v-layout>
 </template>

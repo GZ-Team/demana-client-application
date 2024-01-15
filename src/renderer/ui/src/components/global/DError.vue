@@ -5,9 +5,7 @@ defineProps<{ error: DemanaError }>();
 </script>
 
 <template>
-  <section>
-    <h1>{{ error.name }}: {{ error.message }}</h1>
-
+  <v-alert :title="`${error.name}: ${error.message}`" type="error" variant="outlined">
     <pre>{{ error.stack }}</pre>
-  </section>
+  </v-alert>
 </template>
