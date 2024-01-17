@@ -26,9 +26,14 @@ export default defineConfig({
     ]
   },
   renderer: {
+    server: {
+      strictPort: true,
+      port: 5180
+    },
     build: {
       rollupOptions: {
         input: {
+          index: resolve(__dirname, 'src/renderer/index.html'),
           worker: resolve(__dirname, 'src/renderer/worker/index.html'),
           ui: resolve(__dirname, 'src/renderer/ui/index.html')
         }
