@@ -49,11 +49,15 @@ const { t } = useI18n()
 
 <template>
     <v-app-bar elevation="0" density="compact">
+        <template v-slot:prepend>
+            <d-icon name="demanaLogo" />
+        </template>
+
         <v-app-bar-title>{{ t('globals.applicationName') }}</v-app-bar-title>
 
         <template v-slot:append>
             <v-btn v-for="({ key, icon, clickAction }) in actions" :key="`main-frame-action-${key}`" @click="clickAction">
-                <v-icon :icon="icon" />
+                <d-icon :name="icon" />
             </v-btn>
         </template>
     </v-app-bar>

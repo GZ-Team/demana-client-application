@@ -2,7 +2,7 @@ import * as VueRouter from 'vue-router';
 
 import DefaultLayout from '../layouts/default.vue';
 
-import PrintersPage from '../pages/printers.vue';
+import PrinterConfigurationPage from '../pages/printerConfiguration.vue';
 
 const routes = [
   {
@@ -12,8 +12,8 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'Printers',
-        component: PrintersPage
+        name: 'PrinterConfiguration',
+        component: PrinterConfigurationPage
       }
     ]
   }

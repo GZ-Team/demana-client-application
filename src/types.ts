@@ -32,7 +32,7 @@ export enum TicketType {
   TEST_TICKET
 }
 
-export type DemanaLocaleTranslationItem = Record<string, string>;
+export type DemanaLocaleTranslationItem = unknown;
 
 export type DemanaLocaleTranslation = {
   [key: string]: DemanaLocaleTranslationItem | DemanaLocaleTranslation;
@@ -71,4 +71,10 @@ export type DemanaWindowState = {
   isClosable: boolean
   minimizable: boolean
   maximizable: boolean
+}
+
+export type DemanaPrintingConfiguration = {
+  automatic?: boolean
+  paperWidth?: number
+  paperMargin?: number
 }

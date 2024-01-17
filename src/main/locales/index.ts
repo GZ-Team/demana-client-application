@@ -1,7 +1,11 @@
 import en from './en';
+import ca from './ca';
+import es from './es';
 
-import { DemanaLocaleTranslation } from '../../types';
+import type { DemanaLocaleTranslation } from '../../types';
 
 export default {
-  en
+  en,
+  ca,
+  es
 } as { [key: string]: DemanaLocaleTranslation | undefined };

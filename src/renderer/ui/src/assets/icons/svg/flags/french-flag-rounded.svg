@@ -1,0 +1,7 @@
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" viewBox="0 0 170 170" xml:space="preserve">
+<style>.st1{fill:#fdfdfd}</style><defs><circle id="SVGID_1_" cx="85" cy="85" r="85"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" overflow="visible"/></clipPath>
+<g clip-path="url(#SVGID_2_)">
+<path class="st1" d="M42.9.5h85.2v170H42.9V.5z"/>
+<path d="M42.9.5v170h-84.8V2.4c0-1.6.3-2 2-2 27.5.1 55.2.1 82.8.1z" fill="#002395"/>
+<path d="M128.1 170.5V.5h84.8v170h-84.8z" fill="#ec2939"/>
+<path d="M212.9 170.5V.5c1 .5.5 1.5.5 2.2v165.9c-.1.6.5 1.4-.5 1.9z" fill="#fff"/></g></svg>

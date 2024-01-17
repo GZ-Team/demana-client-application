@@ -75,6 +75,7 @@ export default class {
         autoHideMenuBar: !isDev,
         title: window.title,
         icon: window.icon,
+        frame: isDev,
         webPreferences: {
           ...this.commonProcessProperties.webPreferences,
           preload: join(__dirname, window.preload),

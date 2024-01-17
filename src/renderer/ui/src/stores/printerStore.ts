@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia';
 
-export const useDeviceStore = defineStore('deviceStore', {
+import type { DemanaPrintingConfiguration } from 'types';
+
+export const usePrinterStore = defineStore('printerStore', {
   state: () => ({
     usbPrinters: [] as Array<USBDevice>,
     serialPrinters: [] as Array<SerialPort>,
-    selectedPrinter: null as USBDevice | null
+    selectedPrinter: null as USBDevice | null,
+    printingConfiguration: {} as DemanaPrintingConfiguration
   }),
 
   actions: {
@@ -25,14 +28,14 @@ export const useDeviceStore = defineStore('deviceStore', {
           )
           .sort((printerA, printerB) =>
             printerA.productName &&
-            printerB.productName &&
-            printerA.productName > printerB.productName
+              printerB.productName &&
+              printerA.productName > printerB.productName
               ? 1
               : printerA.productName &&
                 printerB.productName &&
                 printerB.productName > printerA.productName
-              ? -1
-              : 0
+                ? -1
+                : 0
           );
       } catch (exception) {
         console.error('Failed to load all USB printers:', exception);
@@ -50,6 +53,13 @@ export const useDeviceStore = defineStore('deviceStore', {
         await Promise.all([this.loadAllUsbPrinters(), this.loadAllSerialPrinters()]);
       } catch (exception) {
         console.error('Failed to load all printers:', exception);
+      }
+    },
+    async loadPrintingConfiguration(): Promise<void> {
+      try {
+        await window.api.getPrintingConfiguration();
+      } catch (exception) {
+        console.error('Failed to load printing configuration:', exception);
       }
     }
   }

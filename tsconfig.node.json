@@ -2,12 +2,7 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
     "src/types.ts",
-    "src/renderer/ui/src/env.d.ts",
-    "src/renderer/ui/src/**/*",
-    "src/renderer/ui/src/**/*.vue",
-    "src/renderer/ui/src/pages/**/*.vue",
-    "src/renderer/ui/src/components/**/*.vue",
-    "src/renderer/ui/src/layouts/*.vue"
+    "src/renderer/*"
   ],
   "compilerOptions": {
     "composite": true,

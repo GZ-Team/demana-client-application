@@ -25,12 +25,12 @@ type UserDataStorageFileNames = 'configuration.json';
 
 type StorageFileNames = UserDataStorageFileNames;
 
-type UserDataStorageDataKeys = 'selectedPrinterId';
+type UserDataStorageDataKeys = 'selectedPrinterId' | 'printingConfiguration';
 
 type StorageDataKeys = UserDataStorageDataKeys;
 
 export default class {
-  constructor(private storageKey: StorageKeys, private storageFileName: StorageFileNames) {}
+  constructor(private storageKey: StorageKeys, private storageFileName: StorageFileNames) { }
 
   private get storageFilePath() {
     return resolve(app.getPath(this.storageKey), this.storageFileName);

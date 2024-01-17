@@ -8,4 +8,4 @@ export default {
   notifications,
   tray,
   pages
-}
+};

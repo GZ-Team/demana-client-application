@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
-import type { DemanaLocaleTranslationDto, DemanaMessage, DemanaWindowState } from 'types';
+import type { DemanaLocaleTranslationDto, DemanaMessage, DemanaPrintingConfiguration, DemanaWindowState } from 'types';
 
 export interface DemanaPreloadApi { }
 
@@ -9,8 +9,9 @@ export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   // MESSAGES
   sendMessage: (message: DemanaMessage) => void;
   '@messages:new': (callback: (message: DemanaMessage) => {}) => void;
-  // PRINTERS
+  // PRINTING
   getSelectedPrinter: () => Promise<string>;
+  getPrintingConfiguration: () => Promise<DemanaPrintingConfiguration>;
   // I18N
   getAvailableLocaleCodes: () => Promise<string[]>;
   getLocaleTranslations: () => Promise<DemanaLocaleTranslationDto>;
@@ -28,8 +29,9 @@ export const sharedPreloadApi: DemanaSharedPreloadApi = {
   // MESSAGES
   sendMessage: (message) => ipcRenderer.send('sendMessage', message),
   '@messages:new': (callback) => ipcRenderer.on('@messages:new', (_event, value: DemanaMessage) => callback(value)),
-  // PRINTERS
+  // PRINTING
   getSelectedPrinter: () => ipcRenderer.invoke('getSelectedPrinter'),
+  getPrintingConfiguration: () => ipcRenderer.invoke('getPrintingConfiguration'),
   // I18N
   getAvailableLocaleCodes: () => ipcRenderer.invoke('getAvailableLocaleCodes'),
   getLocaleTranslations: () => ipcRenderer.invoke('getLocaleTranslations'),

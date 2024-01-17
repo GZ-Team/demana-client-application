@@ -1,10 +1,10 @@
 import type { App } from 'vue';
 
-import { useDeviceStore } from '../stores/deviceStore';
+import { usePrinterStore } from '../stores/printerStore';
 
 export default {
   install: (_app: App) => {
-    const { loadAllUsbPrinters, loadAllSerialPrinters } = useDeviceStore();
+    const { loadAllUsbPrinters, loadAllSerialPrinters } = usePrinterStore();
 
     navigator.usb.addEventListener('connect', async (_event) => {
       await loadAllUsbPrinters();

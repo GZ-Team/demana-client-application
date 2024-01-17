@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <d-error v-if="hasErrorOccured" :error="error" />
+
     <router-view v-else />
   </v-app>
 </template>
@@ -11,6 +12,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
 import { useAppStore } from './stores/appStore'
+
+import DError from './components/DError.vue';
 
 import type { Ref } from 'vue';
 import type { DemanaError } from './types';
@@ -25,7 +28,7 @@ const { state } = storeToRefs(appStore)
 
 onBeforeMount(() => {
   if (!useRoute().name) {
-    useRouter().replace({ name: 'Printers' });
+    useRouter().replace({ name: 'PrinterConfiguration' });
   }
 });
 

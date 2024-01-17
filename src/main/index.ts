@@ -15,7 +15,7 @@ import { isDev } from './utils/configUtils';
 import { pushEventToProcess } from './utils/eventUtils';
 import { getBrowserWindowByProcessWebContents } from './utils/processUtils';
 
-import type { DemanaMessage } from './../types';
+import type { DemanaLocaleTranslation, DemanaMessage, DemanaPrintingConfiguration } from './../types';
 
 import demanaLogo from '../../resources/demana.png';
 
@@ -48,7 +48,7 @@ function getOrCreateMainUiProcess(): BrowserWindow {
 
 function initializeIpcHandlers(): void {
   // MESSAGES
-  ipcMain.on('sendMessage', (_event, message: DemanaMessage) => {
+  ipcMain.on('sendMessage', (_event, message: DemanaMessage): void => {
     try {
       switch (message.target) {
         case 'ui':
@@ -69,26 +69,34 @@ function initializeIpcHandlers(): void {
     }
   });
 
-  // PRINTERS
-  ipcMain.handle('getSelectedPrinter', (_event) => {
+  // PRINTING
+  ipcMain.handle('getSelectedPrinter', (_event): string => {
     return printerService.selectedPrinterId;
   });
 
-  ipcMain.on('setSelectedPrinter', (_event, printerId: string) => {
+  ipcMain.on('setSelectedPrinter', (_event, printerId: string): void => {
     printerService.selectedPrinterId = printerId;
   });
 
+  ipcMain.handle('getPrintingConfiguration', (_event): DemanaPrintingConfiguration => {
+    return printerService.printingConfiguration;
+  });
+
+  ipcMain.on('setPrintingConfiguration', (_event, printingConfiguration: DemanaPrintingConfiguration): void => {
+    printerService.printingConfiguration = printingConfiguration;
+  });
+
   // I18N
-  ipcMain.handle('getAvailableLocaleCodes', (_event) => {
+  ipcMain.handle('getAvailableLocaleCodes', (_event): string[] => {
     return translationService.availableLocaleCodes;
   });
 
-  ipcMain.handle('getLocaleTranslations', (_event) => {
+  ipcMain.handle('getLocaleTranslations', (_event): DemanaLocaleTranslation => {
     return translationService.translations;
   });
 
   // APP BEHAVIOUR
-  ipcMain.handle('minimizeWindow', (event) => {
+  ipcMain.handle('minimizeWindow', (event): boolean => {
     try {
       const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
 
@@ -102,7 +110,7 @@ function initializeIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('maximizeWindow', (event) => {
+  ipcMain.handle('maximizeWindow', (event): boolean => {
     try {
       const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
 
@@ -116,7 +124,7 @@ function initializeIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('restoreWindow', (event) => {
+  ipcMain.handle('restoreWindow', (event): boolean => {
     try {
       const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
 
@@ -128,7 +136,7 @@ function initializeIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('closeWindow', (event) => {
+  ipcMain.handle('closeWindow', (event): boolean => {
     try {
       const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
 

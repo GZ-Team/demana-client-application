@@ -16,3 +16,9 @@ declare global {
     api: DemanaUiProcessPreloadApi;
   }
 }
+
+declare module '*.svg' {
+  const filePath: string;
+
+  export default filePath;
+}
