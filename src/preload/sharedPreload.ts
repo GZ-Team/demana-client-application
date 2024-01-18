@@ -10,7 +10,7 @@ export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   sendMessage: (message: DemanaMessage) => void;
   '@messages:new': (callback: (message: DemanaMessage) => {}) => void;
   // PRINTING
-  getSelectedPrinter: () => Promise<string>;
+  getSelectedPrinter: () => Promise<string | number | null>;
   getPrintingConfiguration: () => Promise<DemanaPrintingConfiguration>;
   // I18N
   getAvailableLocaleCodes: () => Promise<string[]>;

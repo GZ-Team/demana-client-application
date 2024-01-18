@@ -3,7 +3,6 @@ import { computed, useAttrs } from 'vue';
 import { VIcon, VAvatar } from 'vuetify/lib/components/index.mjs';
 
 import { icons } from '../../assets/icons'
-import { onMounted } from 'vue';
 
 const props = defineProps({
 	name: { type: String, required: true },
@@ -54,11 +53,13 @@ const selectedIcon = computed(() => {
 			return VIcon;
 		}
 
-		return icons[parsedIconName.value].icon;
+		return 'img';
 	}
 
-	return null;
+	return 'div';
 })
+
+const iconContent = computed(() => isCustomIcon.value ? icons[parsedIconName.value].icon : null)
 
 const classes = computed(() => ({
 	icon: isCustomIcon.value,
@@ -94,16 +95,14 @@ const containerClasses = computed(() => {
 
 	return containerClasses;
 })
-
-onMounted(() => {
-	console.log({ selectedIcon: selectedIcon.value })
-})
 </script>
 
 <template>
 	<component :is="iconContainerElement" :class="containerClasses" :size="null" v-bind="$attrs">
-		<component :is="selectedIcon" v-if="selectedIcon" :style="{ transform: `rotate(${rotate}deg)` }" :fill="fill"
-			:color="fill" :class="classes" :icon="name" />
+		<component v-if="isCustomIcon" :is="selectedIcon" :style="{ transform: `rotate(${rotate}deg)` }" :fill="fill"
+			:color="fill" :class="classes" :icon="name" :src="iconContent" />
+		<component v-else :is="selectedIcon" :style="{ transform: `rotate(${rotate}deg)` }" :fill="fill" :color="fill"
+			:class="classes" :icon="name" />
 	</component>
 </template>
 

@@ -15,7 +15,7 @@ export function getFile(filePath: string, defaultValue?: any): string {
 
 export function writeToFile(filePath: string, newFileContent: any): void {
   try {
-    writeFileSync(resolve(filePath), JSON.stringify(newFileContent), { encoding: 'utf-8' });
+    writeFileSync(resolve(filePath), JSON.stringify(newFileContent, null, 2), { encoding: 'utf-8' });
   } catch (exception) {
     throw new Error(`Failed to write to file with path: '${filePath}': ${exception}`);
   }
@@ -31,7 +31,6 @@ export function getFileContents(filePath: string, defaultValue?: any): any {
 
 export function writeFileContents(filePath: string, newFileContent: any) {
   try {
-    console.log({ newFileContent });
     writeToFile(filePath, newFileContent);
   } catch (exception) {
     throw new Error(`Failed to write contents to file with path: '${filePath}': ${exception}`);

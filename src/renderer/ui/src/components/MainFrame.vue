@@ -7,22 +7,21 @@ import { useAppStore } from '../stores/appStore'
 
 const appStore = useAppStore()
 
+const { minimizeWindow, maximizeWindow, restoreWindow, closeWindow } = appStore
 const { state } = storeToRefs(appStore)
 
 const actions = computed(() => [
     {
         key: 'minimize',
         icon: 'mdi-window-minimize',
-        clickAction: async () => {
-            await window.api.minimizeWindow()
-        },
+        clickAction: async () => await minimizeWindow(),
         inactive: !state.value.minimizable
     },
     {
         key: 'maximize',
         icon: 'mdi-window-maximize',
         clickAction: async () => {
-            state.value.isMaximized = await window.api.maximizeWindow()
+            state.value.isMaximized = await maximizeWindow()
         },
         inactive: !state.value.maximizable || state.value.isMaximized
     },
@@ -30,16 +29,14 @@ const actions = computed(() => [
         key: 'restore',
         icon: 'mdi-window-restore',
         clickAction: async () => {
-            state.value.isMaximized = await window.api.restoreWindow()
+            state.value.isMaximized = await restoreWindow()
         },
         inactive: !state.value.maximizable || !state.value.isMaximized
     },
     {
         key: 'close',
         icon: 'mdi-window-close',
-        clickAction: async () => {
-            await window.api.closeWindow()
-        },
+        clickAction: async () => await closeWindow(),
         inactive: !state.value.isClosable
     }
 ].filter(({ inactive }) => !inactive))
@@ -50,7 +47,7 @@ const { t } = useI18n()
 <template>
     <v-app-bar elevation="0" density="compact">
         <template v-slot:prepend>
-            <d-icon name="demanaLogo" />
+            <d-icon x-small name="demanaLogo" />
         </template>
 
         <v-app-bar-title>{{ t('globals.applicationName') }}</v-app-bar-title>

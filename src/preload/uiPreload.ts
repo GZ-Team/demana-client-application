@@ -7,7 +7,7 @@ import type { DemanaPrintingConfiguration } from 'types';
 
 export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   // PRINTING
-  setSelectedPrinter: (printerId: string | number) => void;
+  setSelectedPrinter: (printerId: string | number | null) => void;
   setPrintingConfiguration: (printingConfiguration: DemanaPrintingConfiguration) => void;
 };
 

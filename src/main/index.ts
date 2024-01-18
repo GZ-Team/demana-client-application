@@ -188,6 +188,7 @@ function initializeServices(): void {
     .on('click', () => showMainUiProcess());
 
   printerService = new PrinterService(userDataStore);
+  printerService.setDefaultValues()
 }
 
 function showMainUiProcess(): void {

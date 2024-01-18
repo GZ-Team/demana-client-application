@@ -1,19 +1,33 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useVuelidate } from '@vuelidate/core'
+import { required, between } from '@vuelidate/validators'
 
 import { usePrinterStore } from '../stores/printerStore';
 
 import useTranslations from '../composables/useTranslations'
 
+import type { DemanaPrintingConfiguration } from '../../../../types';
+
 const printerStore = usePrinterStore();
-const { loadAllPrinters, loadPrintingConfiguration } = printerStore;
 const { usbPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore);
 
-const localSelectedPrinterId = ref(null)
+const inputLimits = {
+    paperWidth: {
+        minValue: 10,
+        maxValue: 200
+    },
+    paperMargin: {
+        minValue: 1,
+        maxValue: 20
+    }
+}
 
-const localSettings = reactive({
-    automatic: true,
+const localSelectedPrinterId = ref<string | null>(null)
+
+const localPrinterConfiguration = reactive<DemanaPrintingConfiguration>({
+    automatic: null,
     paperWidth: null,
     paperMargin: null
 })
@@ -28,60 +42,130 @@ const printersAsOptions = computed(() =>
 
 const computedSelectedPrinterId = computed({
     get() {
-        return localSelectedPrinterId.value || selectedPrinter.value?.productId
+        return localSelectedPrinterId.value ?? selectedPrinter.value?.productId
     },
     set(newPrinterId) {
-        localSelectedPrinterId.value = newPrinterId
+        localSelectedPrinterId.value = `${newPrinterId}`
     }
 });
 
-const computedPaperWidth = computed({
+const computedPaperWidth = computed<number>({
     get() {
-        return localSettings.paperWidth || printingConfiguration.value.paperWidth
+        return localPrinterConfiguration.paperWidth ?? printingConfiguration.value?.paperWidth ?? inputLimits.paperWidth.minValue
     },
     set(newPaperWidth) {
-        localSettings.paperWidth = newPaperWidth
+        localPrinterConfiguration.paperWidth = newPaperWidth
     }
 })
 
-const computedPaperMargin = computed({
+const computedPaperMargin = computed<number>({
     get() {
-        return localSettings.paperMargin | printingConfiguration.value.paperMargin
+        return localPrinterConfiguration.paperMargin ?? printingConfiguration.value?.paperMargin ?? inputLimits.paperMargin.minValue
     },
     set(newPaperMargin) {
-        localSettings.paperMargin = newPaperMargin
+        localPrinterConfiguration.paperMargin = newPaperMargin
     }
 })
 
 const computedAutomaticPrinting = computed<boolean>({
     get() {
-        return localSettings.automatic || printingConfiguration.value.automatic
+        return localPrinterConfiguration.automatic ?? printingConfiguration.value?.automatic ?? true
     },
     set(isAutomatic) {
-        localSettings.automatic = isAutomatic
+        localPrinterConfiguration.automatic = isAutomatic
     }
 })
 
-const { translate } = useTranslations('pages.printerConfiguration')
+const localState = computed(() => ({
+    selectedPrinter: computedSelectedPrinterId,
+    paperWidth: computedPaperWidth,
+    paperMargin: computedPaperMargin,
+    automaticPrinting: computedAutomaticPrinting
+}))
 
-async function savePrinter() {
-    window.api.setSelectedPrinter(selectedPrinter.value.productId);
+const hasConfigurationBeenUpdated = computed(() =>
+    !Object.entries({
+        selectedPrinterId: localSelectedPrinterId.value,
+        ...localPrinterConfiguration
+    }).every(([localKey, localValue]) => {
+        const savedConfiguration = {
+            selectedPrinterId: selectedPrinter.value,
+            ...printingConfiguration.value
+        }
 
-    const feedback = {
-        message: 'success.venue.save-venue-printer-configuration'
-    };
+        return `${savedConfiguration[localKey]}` === `${localValue}`
+    })
+)
+
+const { translate, createTranslatedValidator } = useTranslations('pages.printerConfiguration')
+
+const vuelidate = useVuelidate(
+    {
+        selectedPrinter: {
+            required: createTranslatedValidator(required)
+        },
+        paperWidth: {
+            required: createTranslatedValidator(required),
+            between: createTranslatedValidator(between(inputLimits.paperWidth.minValue, inputLimits.paperWidth.maxValue))
+        },
+        paperMargin: {
+            required: createTranslatedValidator(required),
+            between: createTranslatedValidator(between(inputLimits.paperMargin.minValue, inputLimits.paperMargin.maxValue))
+        },
+        automaticPrinting: {
+            required: createTranslatedValidator(required)
+        }
+    },
+    localState
+)
+
+const errorMessages = computed(() =>
+    vuelidate.value.$errors.reduce(
+        (messages: Record<string, string[]>, { $propertyPath, $message }) => ({
+            ...messages,
+            [$propertyPath]: [...(messages[$propertyPath] || []), $message.toString()]
+        }),
+        {}
+    )
+)
+
+const {
+    loadAllPrinters,
+    loadPrintingConfiguration,
+    updateSelectedPrinterId,
+    updatePrintingConfiguration,
+    testPrintingConfiguration
+} = printerStore;
+
+async function handleSavePrintingConfiguration() {
+    const isValid = await vuelidate.value.$validate()
+
+    if (isValid) {
+        await Promise.all([
+            updateSelectedPrinterId(selectedPrinter.value.productId),
+            updatePrintingConfiguration({
+                automatic: computedAutomaticPrinting,
+                paperWidth: computedPaperWidth,
+                paperMargin: computedPaperMargin
+            })
+        ])
+
+        const feedback = {
+            message: 'success.venue.save-venue-printer-configuration'
+        };
+    }
 }
 
-async function deletePrinter() {
-    window.api.setSelectedPrinter(null);
+async function handleDeletePrinter() {
+    updateSelectedPrinterId(null)
 
     const feedback = {
         message: 'success.venue.delete-venue-printer'
     };
 }
 
-async function testPrinter(): Promise<void> {
-    window.api.sendMessage({ target: 'worker', content: 'test-printer' });
+async function handleTest(): Promise<void> {
+    testPrintingConfiguration()
 }
 
 function goBack(): void {
@@ -93,6 +177,14 @@ onMounted(async () => {
         loadAllPrinters(),
         loadPrintingConfiguration()
     ])
+
+    if (printingConfiguration.value) {
+        const { automatic, paperMargin, paperWidth } = printingConfiguration.value
+
+        localPrinterConfiguration.automatic = automatic
+        localPrinterConfiguration.paperMargin = paperMargin
+        localPrinterConfiguration.paperWidth = paperWidth
+    }
 });
 </script>
 
@@ -100,7 +192,7 @@ onMounted(async () => {
     <v-container fluid>
         <d-vertical-spacer x-small />
 
-        <v-row>
+        <v-row align="center">
             <v-col cols="auto" class="back-arrow">
                 <v-btn exact small icon @click="goBack">
                     <d-icon name="mdi-chevron-left" />
@@ -124,7 +216,9 @@ onMounted(async () => {
         <v-row justify="center">
             <v-col class="top-pa-0">
                 <v-select v-model="computedSelectedPrinterId" :label="translate('printerName')" :items="printersAsOptions"
-                    item-text="label" item-value="key" no-data-text="No printers to be found" rounded solo />
+                    hide-details="auto" :error="vuelidate.selectedPrinter.$error"
+                    :error-messages="errorMessages.selectedPrinter" item-text="label" item-value="key"
+                    no-data-text="No printers to be found" rounded dense variant="solo" />
             </v-col>
         </v-row>
 
@@ -138,8 +232,10 @@ onMounted(async () => {
                         </p>
                     </v-col>
                     <v-col cols="12" class="top-pa-0">
-                        <v-text-field v-model="computedPaperWidth" type="number" solo flat rounded dense
-                            :label="translate('paperWidth')" />
+                        <v-text-field v-model="computedPaperWidth" type="number" variant="solo" rounded dense
+                            :label="translate('paperWidth')" hide-details="auto" :min="inputLimits.paperWidth.minValue"
+                            :max="inputLimits.paperWidth.maxValue" :error="vuelidate.paperWidth.$error"
+                            :error-messages="errorMessages.paperWidth" />
                     </v-col>
                 </v-row>
             </v-col>
@@ -153,9 +249,10 @@ onMounted(async () => {
                         </p>
                     </v-col>
                     <v-col cols="12" class="top-pa-0">
-
-                        <v-text-field v-model="computedPaperMargin" type="number" solo flat rounded dense
-                            :label="translate('margin')" />
+                        <v-text-field v-model="computedPaperMargin" type="number" variant="solo" rounded dense
+                            :label="translate('margin')" hide-details="auto" :min="inputLimits.paperMargin.minValue"
+                            :max="inputLimits.paperMargin.maxValue" :error="vuelidate.paperMargin.$error"
+                            :error-messages="errorMessages.paperMargin" />
                     </v-col>
                 </v-row>
             </v-col>
@@ -163,30 +260,32 @@ onMounted(async () => {
 
         <v-row justify="center">
             <v-col class="top-pa-0">
-                <v-switch v-model="computedAutomaticPrinting" :label="translate('automatic')" />
+                <v-switch v-model="computedAutomaticPrinting" :label="translate('automatic')" hide-details="auto"
+                    :error="vuelidate.automaticPrinting.$error" :error-messages="errorMessages.automaticPrinting" />
             </v-col>
         </v-row>
 
         <d-vertical-spacer small />
 
         <v-row justify="center" dense>
-            <v-col cols="5" :class="{ 'margin-bottom': !selectedPrinter }">
-                <v-btn color="secondary" rounded block @click="savePrinter">
+            <v-col cols="5">
+                <v-btn :disabled="!hasConfigurationBeenUpdated" color="secondary" rounded block
+                    @click="handleSavePrintingConfiguration">
                     {{ translate('actions.save') }}
                 </v-btn>
             </v-col>
 
             <v-col v-if="selectedPrinter" cols="5">
-                <v-btn color="error" rounded block @click="deletePrinter">
+                <v-btn :disabled="!selectedPrinter" color="error" rounded block @click="handleDeletePrinter">
                     {{ translate('actions.delete') }}
                 </v-btn>
             </v-col>
 
-            <v-col v-if="selectedPrinter" cols="5">
-                <v-btn color="info" rounded block @click="testPrinter">
+            <v-col cols="5">
+                <v-btn color="info" rounded block :disabled="hasConfigurationBeenUpdated" @click="handleTest">
                     {{ translate('actions.test') }}
                 </v-btn>
             </v-col>
         </v-row>
     </v-container>
-</template>../stores/printerStore
+</template>

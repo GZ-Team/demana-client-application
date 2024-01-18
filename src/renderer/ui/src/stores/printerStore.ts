@@ -2,12 +2,19 @@ import { defineStore } from 'pinia';
 
 import type { DemanaPrintingConfiguration } from 'types';
 
+type StoreState = {
+  usbPrinters: Array<USBDevice>,
+  serialPrinters: Array<SerialPort>,
+  selectedPrinter: USBDevice | null,
+  printingConfiguration: DemanaPrintingConfiguration | null
+}
+
 export const usePrinterStore = defineStore('printerStore', {
-  state: () => ({
-    usbPrinters: [] as Array<USBDevice>,
-    serialPrinters: [] as Array<SerialPort>,
-    selectedPrinter: null as USBDevice | null,
-    printingConfiguration: {} as DemanaPrintingConfiguration
+  state: (): StoreState => ({
+    usbPrinters: [],
+    serialPrinters: [],
+    selectedPrinter: null,
+    printingConfiguration: null
   }),
 
   actions: {
@@ -38,28 +45,59 @@ export const usePrinterStore = defineStore('printerStore', {
                 : 0
           );
       } catch (exception) {
-        console.error('Failed to load all USB printers:', exception);
+        throw new Error(`Failed to load all USB printers: ${(exception as Error).message}`, { cause: exception });
       }
     },
     async loadAllSerialPrinters(): Promise<void> {
       try {
         this.serialPrinters = await navigator.serial.getPorts();
       } catch (exception) {
-        console.error('Failed to load all serial printers printers:', exception);
+        throw new Error(`Failed to load all serial printers printers: ${(exception as Error).message}`, { cause: exception });
       }
     },
     async loadAllPrinters(): Promise<void> {
       try {
         await Promise.all([this.loadAllUsbPrinters(), this.loadAllSerialPrinters()]);
       } catch (exception) {
-        console.error('Failed to load all printers:', exception);
+        throw new Error(`Failed to load all printers: ${(exception as Error).message}`, { cause: exception });
       }
     },
-    async loadPrintingConfiguration(): Promise<void> {
+    async loadSelectedPrinterId(): Promise<string | number | null> {
       try {
-        await window.api.getPrintingConfiguration();
+        return await window.api.getSelectedPrinter()
       } catch (exception) {
-        console.error('Failed to load printing configuration:', exception);
+        throw new Error(`Failed to load the selected printer ID: ${(exception as Error).message}`, { cause: exception });
+      }
+    },
+    async updateSelectedPrinterId(newSelectedPrinterId: string | number | null): Promise<string | number | null> {
+      try {
+        window.api.setSelectedPrinter(newSelectedPrinterId);
+        return this.loadSelectedPrinterId()
+      } catch (exception) {
+        throw new Error(`Failed to update the selected printer ID: ${(exception as Error).message}`, { cause: exception });
+      }
+    },
+    async loadPrintingConfiguration(): Promise<DemanaPrintingConfiguration> {
+      try {
+        this.printingConfiguration = await window.api.getPrintingConfiguration();
+        return this.printingConfiguration
+      } catch (exception) {
+        throw new Error(`Failed to load the printing configuration: ${(exception as Error).message}`, { cause: exception });
+      }
+    },
+    async updatePrintingConfiguration(newPrintingConfiguration: DemanaPrintingConfiguration): Promise<DemanaPrintingConfiguration> {
+      try {
+        window.api.setPrintingConfiguration(newPrintingConfiguration);
+        return this.loadPrintingConfiguration()
+      } catch (exception) {
+        throw new Error(`Failed to update the printing configuration: ${(exception as Error).message}`, { cause: exception });
+      }
+    },
+    testPrintingConfiguration(): void {
+      try {
+        window.api.sendMessage({ target: 'worker', content: 'test-printer' });
+      } catch (exception) {
+        throw new Error(`Failed to test the printing configuration: ${(exception as Error).message}`, { cause: exception });
       }
     }
   }
