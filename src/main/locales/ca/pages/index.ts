@@ -10,5 +10,10 @@ export default {
             save: 'Guardar',
             test: 'Test'
         }
+    },
+    // TODO: translate
+    preferences: {
+        title: 'Preferences',
+        applicationLanguage: 'Application language'
     }
 }

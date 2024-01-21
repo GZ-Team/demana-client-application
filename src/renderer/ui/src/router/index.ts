@@ -3,6 +3,7 @@ import * as VueRouter from 'vue-router';
 import DefaultLayout from '../layouts/default.vue';
 
 import PrinterConfigurationPage from '../pages/printerConfiguration.vue';
+import PreferencesPage from '../pages/preferences.vue';
 
 const routes = [
   {
@@ -14,6 +15,11 @@ const routes = [
         path: '',
         name: 'PrinterConfiguration',
         component: PrinterConfigurationPage
+      },
+      {
+        path: 'preferences',
+        name: 'Preferences',
+        component: PreferencesPage
       }
     ]
   }

@@ -26,7 +26,7 @@ type UserDataStorageFileNames = 'configuration.json';
 
 type StorageFileNames = UserDataStorageFileNames;
 
-type UserDataStorageDataKeys = 'selectedPrinterId' | 'printingConfiguration';
+type UserDataStorageDataKeys = 'selectedPrinterId' | 'printingConfiguration' | 'preferences';
 
 type StorageDataKeys = UserDataStorageDataKeys;
 
@@ -62,13 +62,13 @@ export default class {
       case 'bigint':
       case 'boolean':
         if (isNil(existingValue)) {
-          console.log(`[storageService:setDefaultValues] Writing the property "${key}" to the configuration "${this.storageFilePath}".`)
+          console.log(`[storageService:setDefaultValues] Writing the property "${key}" to the configuration file "${this.storageFilePath}".`)
           this.set(key, defaultValue)
         }
         break
 
       case 'object':
-        console.log(`[storageService:setDefaultValueset] Writing the property "${key}" to the configuration "${this.storageFilePath}".`)
+        console.log(`[storageService:setDefaultValueset] Writing the property "${key}" to the configuration file "${this.storageFilePath}".`)
         this.set(key, {
           ...defaultValue as object,
           ...existingValue
@@ -76,7 +76,7 @@ export default class {
         break
 
       case 'undefined':
-        console.log(`[storageService:setDefaultValues] Writing the property "${key}" to the configuration "${this.storageFilePath}".`)
+        console.log(`[storageService:setDefaultValues] Writing the property "${key}" to the configuration file "${this.storageFilePath}".`)
         this.set(key, defaultValue)
         break;
     }

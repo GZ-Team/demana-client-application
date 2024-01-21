@@ -10,5 +10,9 @@ export default {
             save: 'Guardar',
             test: 'Test'
         }
+    },
+    preferences: {
+        title: 'Preferences',
+        applicationLanguage: 'Application language'
     }
 }

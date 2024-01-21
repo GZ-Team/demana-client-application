@@ -1,33 +1,21 @@
 import allLocaleTranslations from '../locales';
 
-import type { DemanaLocaleTranslation, DemanaLocaleTranslationDto } from '../../types';
-
-type TranslationServiceOptions = {
-  defaultLocale: string;
-};
+import type PreferencesService from './preferencesService';
+import type { DemanaLocaleCode, DemanaLocaleTranslation, DemanaLocaleTranslationDto } from '../../types';
 
 export default class {
-  private locale: string;
-  private defaultLocale: string;
+  constructor(private preferenceService: PreferencesService) { }
 
-  constructor(locale: string, options: TranslationServiceOptions = { defaultLocale: 'en' }) {
-    this.locale = this.parseLocaleCode(locale) || options.defaultLocale;
-    this.defaultLocale = options.defaultLocale;
+  private get locale(): DemanaLocaleCode {
+    return this.preferenceService.preferences.language as DemanaLocaleCode
   }
 
   get translations(): DemanaLocaleTranslationDto {
     try {
       let localeTranslations = {
         locale: this.locale,
-        translations: allLocaleTranslations[this.locale] as DemanaLocaleTranslation
-      };
-
-      if (!localeTranslations.translations) {
-        localeTranslations = {
-          locale: this.defaultLocale,
-          translations: allLocaleTranslations[this.defaultLocale] as DemanaLocaleTranslation
-        };
-      }
+        translations: this.allTranslations[this.locale]
+      } as DemanaLocaleTranslationDto;
 
       if (!localeTranslations.translations) {
         throw new Error(`no translations for locale codes`);
@@ -36,23 +24,17 @@ export default class {
       return localeTranslations;
     } catch (exception) {
       throw new Error(
-        `Failed to get translations for locale codes: ${(exception as Error).message} [current: ${
-          this.locale
-        }, default: ${this.defaultLocale}]`
+        `Failed to get translations for locale codes: ${(exception as Error).message} [current: ${this.locale}]`
       );
     }
   }
 
-  get availableLocaleCodes(): string[] {
-    return Object.keys(allLocaleTranslations);
+  get allTranslations(): Record<DemanaLocaleCode, DemanaLocaleTranslation> {
+    return allLocaleTranslations
   }
 
-  private parseLocaleCode(value: string): string | null {
-    return (
-      this.availableLocaleCodes.find((localeCode) =>
-        value.toLowerCase().includes(localeCode.toLowerCase())
-      ) || null
-    );
+  get availableLocaleCodes(): DemanaLocaleCode[] {
+    return Object.keys(this.allTranslations) as DemanaLocaleCode[];
   }
 
   translate = (key: string, context: Record<string, string> = {}): string => {
@@ -60,7 +42,7 @@ export default class {
       const rawTranslation = key
         .split('.')
         .reduce(
-          (translation: undefined | DemanaLocaleTranslation | string, keyPart) =>
+          (translation: undefined | unknown | string, keyPart) =>
             translation ? translation[keyPart] : translation,
           this.translations.translations
         ) as string | undefined;

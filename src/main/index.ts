@@ -4,6 +4,7 @@ import { electronApp, optimizer } from '@electron-toolkit/utils';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 
 import StorageService from './services/storageService';
+import PreferencesService from './services/preferencesService';
 import SessionService from './services/sessionService';
 import PrinterService from './services/printerService';
 import TrayService from './services/trayService';
@@ -14,8 +15,9 @@ import ProcessService, { DemanaPreloadScriptPath } from './services/processServi
 import { isDev } from './utils/configUtils';
 import { pushEventToProcess } from './utils/eventUtils';
 import { getBrowserWindowByProcessWebContents } from './utils/processUtils';
+import { parseLocale } from './utils/i18nUtils';
 
-import type { DemanaLocaleTranslation, DemanaMessage, DemanaPrintingConfiguration } from './../types';
+import type { DemanaLocaleCode, DemanaLocaleTranslation, DemanaMessage, DemanaPreferences, DemanaPrintingConfiguration, Optional } from './../types';
 
 import demanaLogo from '../../resources/demana.png';
 
@@ -23,6 +25,7 @@ let isApplicationBeingClosed = false;
 const icon = nativeImage.createFromDataURL(demanaLogo);
 
 const userDataStore = new StorageService('userData', 'configuration.json');
+let preferenceService: PreferencesService
 let translationService: TranslationService;
 let printerService: PrinterService;
 const notificationService = new NotificationService(icon);
@@ -86,13 +89,22 @@ function initializeIpcHandlers(): void {
     printerService.printingConfiguration = printingConfiguration;
   });
 
+  // PREFERENCES
+  ipcMain.on('setPreferences', (_event, preferencesUpdate: Optional<DemanaPreferences, 'language'>) => {
+    preferenceService.preferences = preferencesUpdate
+  })
+
+  ipcMain.handle('getPreferences', (_event): DemanaPreferences => {
+    return preferenceService.preferences;
+  });
+
   // I18N
-  ipcMain.handle('getAvailableLocaleCodes', (_event): string[] => {
+  ipcMain.handle('getAvailableLocaleCodes', (_event): DemanaLocaleCode[] => {
     return translationService.availableLocaleCodes;
   });
 
-  ipcMain.handle('getLocaleTranslations', (_event): DemanaLocaleTranslation => {
-    return translationService.translations;
+  ipcMain.handle('getAllTranslations', (_event): Record<DemanaLocaleCode, DemanaLocaleTranslation> => {
+    return translationService.allTranslations;
   });
 
   // APP BEHAVIOUR
@@ -156,7 +168,10 @@ function initializeServices(): void {
 
   new SessionService(id);
 
-  translationService = new TranslationService(app.getLocale());
+  preferenceService = new PreferencesService(userDataStore)
+  preferenceService.setDefaultValues({ language: parseLocale(app.getLocale()) })
+
+  translationService = new TranslationService(preferenceService);
 
   const { translate } = translationService;
 

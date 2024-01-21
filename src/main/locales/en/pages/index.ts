@@ -10,5 +10,9 @@ export default {
             save: 'Save',
             test: 'Print test ticket'
         }
+    },
+    preferences: {
+        title: 'Preferences',
+        applicationLanguage: 'Application language'
     }
 }

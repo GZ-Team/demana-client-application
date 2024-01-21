@@ -32,14 +32,58 @@ export enum TicketType {
   TEST_TICKET
 }
 
-export type DemanaLocaleTranslationItem = unknown;
+export type DemanaLocaleCode = 'en' | 'es' | 'ca'
 
 export type DemanaLocaleTranslation = {
-  [key: string]: DemanaLocaleTranslationItem | DemanaLocaleTranslation;
-};
+  globals: {
+    applicationName: string
+    languages: Record<string, string>,
+    validation: {
+      general: {
+        'name-required': string
+        'email-valid': string
+        'max-length': string
+        'min-value': string
+        'max-value': string
+        required: string
+        between: string
+      }
+    }
+  },
+  notifications: {
+    runningInbackground: {
+      title: string
+      message: string
+    }
+  },
+  tray: {
+    actions: {
+      open: string
+      exit: string
+    }
+  },
+  pages: {
+    printerConfiguration: {
+      title: string
+      printerName: string
+      paperWidth: string
+      margin: string
+      automatic: string
+      actions: {
+        delete: string
+        save: string
+        test: string
+      }
+    },
+    preferences: {
+      title: string
+      applicationLanguage: string
+    }
+  }
+}
 
 export type DemanaLocaleTranslationDto = {
-  locale: string;
+  locale: DemanaLocaleCode;
   translations: DemanaLocaleTranslation;
 };
 
@@ -78,3 +122,9 @@ export type DemanaPrintingConfiguration = {
   paperWidth?: number
   paperMargin?: number
 }
+
+export type DemanaPreferences = {
+  language: DemanaLocaleCode
+}
+
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>

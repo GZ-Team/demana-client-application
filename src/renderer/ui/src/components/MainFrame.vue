@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router'
 
 import { useAppStore } from '../stores/appStore'
 
@@ -10,7 +11,14 @@ const appStore = useAppStore()
 const { minimizeWindow, maximizeWindow, restoreWindow, closeWindow } = appStore
 const { state } = storeToRefs(appStore)
 
+const router = useRouter()
+
 const actions = computed(() => [
+    {
+        key: 'settings',
+        icon: 'mdi-menu',
+        clickAction: async () => await router.push({ name: 'Preferences' })
+    },
     {
         key: 'minimize',
         icon: 'mdi-window-minimize',

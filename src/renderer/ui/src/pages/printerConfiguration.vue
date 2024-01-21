@@ -157,7 +157,7 @@ async function handleSavePrintingConfiguration() {
 }
 
 async function handleDeletePrinter() {
-    updateSelectedPrinterId(null)
+    await updateSelectedPrinterId(null)
 
     const feedback = {
         message: 'success.venue.delete-venue-printer'
@@ -193,7 +193,7 @@ onMounted(async () => {
         <d-vertical-spacer x-small />
 
         <v-row align="center">
-            <v-col cols="auto" class="back-arrow">
+            <v-col cols="auto">
                 <v-btn exact small icon @click="goBack">
                     <d-icon name="mdi-chevron-left" />
                 </v-btn>
@@ -215,46 +215,72 @@ onMounted(async () => {
 
         <v-row justify="center">
             <v-col class="top-pa-0">
-                <v-select v-model="computedSelectedPrinterId" :label="translate('printerName')" :items="printersAsOptions"
-                    hide-details="auto" :error="vuelidate.selectedPrinter.$error"
-                    :error-messages="errorMessages.selectedPrinter" item-text="label" item-value="key"
-                    no-data-text="No printers to be found" rounded dense variant="solo" />
+                <v-container fluid class="pa-0">
+                    <v-row dense>
+                        <v-col>
+                            <v-col class="input-field-title">
+                                <p>
+                                    {{ translate('printerName') }}
+                                </p>
+                            </v-col>
+                        </v-col>
+                    </v-row>
+
+                    <v-row dense>
+                        <v-col class="top-pa-0">
+                            <v-select v-model="computedSelectedPrinterId" :label="translate('printerName')"
+                                :items="printersAsOptions" hide-details="auto" :error="vuelidate.selectedPrinter.$error"
+                                :error-messages="errorMessages.selectedPrinter" item-text="label" item-value="key"
+                                no-data-text="No printers to be found" rounded dense variant="solo" />
+                        </v-col>
+                    </v-row>
+                </v-container>
             </v-col>
         </v-row>
 
-        <v-row>
+        <v-row align="end">
             <v-col cols="6">
-                <v-row>
-                    <v-col cols="12" class="input-field-title">
-                        <d-vertical-spacer x-small />
-                        <p>
-                            {{ translate('paperWidth') }}
-                        </p>
-                    </v-col>
-                    <v-col cols="12" class="top-pa-0">
-                        <v-text-field v-model="computedPaperWidth" type="number" variant="solo" rounded dense
-                            :label="translate('paperWidth')" hide-details="auto" :min="inputLimits.paperWidth.minValue"
-                            :max="inputLimits.paperWidth.maxValue" :error="vuelidate.paperWidth.$error"
-                            :error-messages="errorMessages.paperWidth" />
-                    </v-col>
-                </v-row>
+                <v-container fluid class="pa-0">
+                    <v-row dense>
+                        <v-col>
+                            <v-col class="input-field-title">
+                                <p>
+                                    {{ translate('paperWidth') }}
+                                </p>
+                            </v-col>
+                        </v-col>
+                    </v-row>
+
+                    <v-row dense>
+                        <v-col class="top-pa-0">
+                            <v-text-field v-model="computedPaperWidth" type="number" variant="solo" rounded dense
+                                :label="translate('paperWidth')" hide-details="auto" :min="inputLimits.paperWidth.minValue"
+                                :max="inputLimits.paperWidth.maxValue" :error="vuelidate.paperWidth.$error"
+                                :error-messages="errorMessages.paperWidth" />
+                        </v-col>
+                    </v-row>
+                </v-container>
             </v-col>
 
             <v-col cols="6">
-                <v-row>
-                    <v-col cols="12" class="input-field-title">
-                        <d-vertical-spacer x-small />
-                        <p>
-                            {{ translate('margin') }}
-                        </p>
-                    </v-col>
-                    <v-col cols="12" class="top-pa-0">
-                        <v-text-field v-model="computedPaperMargin" type="number" variant="solo" rounded dense
-                            :label="translate('margin')" hide-details="auto" :min="inputLimits.paperMargin.minValue"
-                            :max="inputLimits.paperMargin.maxValue" :error="vuelidate.paperMargin.$error"
-                            :error-messages="errorMessages.paperMargin" />
-                    </v-col>
-                </v-row>
+                <v-container fluid class="pa-0">
+                    <v-row dense>
+                        <v-col class="input-field-title">
+                            <p>
+                                {{ translate('margin') }}
+                            </p>
+                        </v-col>
+                    </v-row>
+
+                    <v-row dense>
+                        <v-col class="top-pa-0">
+                            <v-text-field v-model="computedPaperMargin" type="number" variant="solo" rounded dense
+                                :label="translate('margin')" hide-details="auto" :min="inputLimits.paperMargin.minValue"
+                                :max="inputLimits.paperMargin.maxValue" :error="vuelidate.paperMargin.$error"
+                                :error-messages="errorMessages.paperMargin" />
+                        </v-col>
+                    </v-row>
+                </v-container>
             </v-col>
         </v-row>
 

@@ -1,3 +1,3 @@
-if (window.location.pathname === '/') {
-    window.location.href = './ui/index.html'
+if (window.location.pathname !== '/ui/index.html') {
+    window.location.pathname = '/ui/index.html'
 }
