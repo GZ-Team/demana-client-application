@@ -11,9 +11,9 @@ export default {
             test: 'Test'
         }
     },
-    // TODO: translate
+    
     preferences: {
-        title: 'Preferences',
-        applicationLanguage: 'Application language'
+        title: 'Preferències',
+        applicationLanguage: 'Idioma'
     }
 }

@@ -6,7 +6,6 @@ export default {
         'min-value': 'Aquest camp ha de ser major o igual a {minValue}.',
         'max-value': 'Aquest camp ha de ser menor o igual a {maxValue}.',
         required: 'Aquest camp és obligatori.',
-        // TODO: TRANSLATE
-        between: 'This value needs to be between {minValue} and {maxValue}.'
+        between: 'Aquest valor ha d\'estar entre {minValue} i {maxValue}.'
     }
 }

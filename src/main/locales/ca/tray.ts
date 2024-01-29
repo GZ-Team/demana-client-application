@@ -1,6 +1,6 @@
 export default {
   actions: {
-    open: 'Open',
-    exit: 'Exit'
+    open: 'Obrir',
+    exit: 'Sortir'
   }
 };

@@ -11,8 +11,9 @@ export default {
             test: 'Test'
         }
     },
+    
     preferences: {
-        title: 'Preferences',
-        applicationLanguage: 'Application language'
+        title: 'Preferencias',
+        applicationLanguage: 'Idioma'
     }
 }

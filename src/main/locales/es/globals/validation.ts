@@ -6,7 +6,6 @@ export default {
         'min-value': 'Este campo debe ser mayor o igual que {minValue}.',
         'max-value': 'Este campo debe ser menor o igual que {maxValue}.',
         required: 'Este campo es obligatorio.',
-        // TODO: TRANSLATE
-        between: 'This value needs to be between {minValue} and {maxValue}.'
+        between: 'Este valor tiene que estar entre {minValue} y {maxValue}.'
     }
 }
