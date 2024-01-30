@@ -1,9 +1,9 @@
 export default {
   links: {
-    preferences: 'Preferences'
+    preferences: 'Preferències'
   },
   actions: {
-    open: 'Open',
-    exit: 'Exit'
+    open: 'Obrir',
+    exit: 'Sortir'
   }
 };

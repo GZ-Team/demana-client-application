@@ -1,7 +1,7 @@
 export default {
   runningInbackground: {
-    title: 'The application is not closed.',
+    title: 'La aplicación no se ha cerrado.',
     message:
-      'The application is still running in the background.\nExit the application from the context menu.'
+      'La aplicación sigue funcionando en segundo plano.\nUtiliza el menú para cerrarla por completo.'
   }
 };

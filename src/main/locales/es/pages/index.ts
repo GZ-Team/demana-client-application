@@ -12,7 +12,8 @@ export default {
     }
   },
   preferences: {
-    title: 'Preferences',
-    applicationLanguage: 'Application language'
+    title: 'Preferencias',
+    applicationLanguage: 'Idioma'
   }
-};
+}
+
