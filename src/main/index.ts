@@ -3,8 +3,9 @@ import { join } from 'path';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 
-import StorageService from './services/storageService';
+import RuntimeConfigService from './services/runtimeConfigService';
 import PreferencesService from './services/preferencesService';
+import TemporaryDataService from './services/temporaryDataService';
 import SessionService from './services/sessionService';
 import PrinterService from './services/printerService';
 import TrayService from './services/trayService';
@@ -12,22 +13,35 @@ import TranslationService from './services/translationService';
 import NotificationService from './services/notificationService';
 import ProcessService, { DemanaPreloadScriptPath } from './services/processService';
 
-import { isDev } from './utils/configUtils';
 import { pushEventToProcess } from './utils/eventUtils';
 import { getBrowserWindowByProcessWebContents } from './utils/processUtils';
 import { parseLocale } from './utils/i18nUtils';
 
-import type { DemanaLocaleCode, DemanaLocaleTranslation, DemanaMessage, DemanaPreferences, DemanaPrintingConfiguration, Optional } from './../types';
+import type {
+  DemanaLocaleCode,
+  DemanaLocaleTranslation,
+  DemanaMessage,
+  DemanaPreferences,
+  DemanaPrintingConfiguration,
+  DemanaTemporaryDataDto,
+  Optional
+} from './../types';
 
 import demanaLogo from '../../resources/demana.png';
+
+import useLogger from './utils/loggerUtils';
+
+const { logger } = useLogger();
 
 let isApplicationBeingClosed = false;
 const icon = nativeImage.createFromDataURL(demanaLogo);
 
-const userDataStore = new StorageService('userData', 'configuration.json');
-let preferenceService: PreferencesService
-let translationService: TranslationService;
-let printerService: PrinterService;
+let sessionService: SessionService;
+const runtimeConfigService = new RuntimeConfigService();
+const preferenceService = new PreferencesService();
+const temporaryDataService = new TemporaryDataService();
+const translationService = new TranslationService();
+const printerService = new PrinterService();
 const notificationService = new NotificationService(icon);
 const processService = new ProcessService();
 
@@ -42,7 +56,18 @@ function getOrCreateMainUiProcess(): BrowserWindow {
         content: join(__dirname, '../renderer/ui/index.html'),
         preload: DemanaPreloadScriptPath.UI
       },
-      mode: isDev() ? 'development' : 'production'
+      mode: runtimeConfigService.isDev ? 'development' : 'production',
+      events: {
+        close: () => {
+          if (!isApplicationBeingClosed) {
+            notificationService.showNotification({
+              title: translationService.translate('notifications.runningInbackground.title'),
+              message: translationService.translate('notifications.runningInbackground.message'),
+              icon
+            });
+          }
+        }
+      }
     });
   }
 
@@ -85,114 +110,175 @@ function initializeIpcHandlers(): void {
     return printerService.printingConfiguration;
   });
 
-  ipcMain.on('setPrintingConfiguration', (_event, printingConfiguration: DemanaPrintingConfiguration): void => {
-    printerService.printingConfiguration = printingConfiguration;
-  });
+  ipcMain.on(
+    'setPrintingConfiguration',
+    (_event, printingConfiguration: DemanaPrintingConfiguration): void => {
+      printerService.printingConfiguration = printingConfiguration;
+    }
+  );
 
   // PREFERENCES
-  ipcMain.on('setPreferences', (_event, preferencesUpdate: Optional<DemanaPreferences, 'language'>) => {
-    preferenceService.preferences = preferencesUpdate
-  })
+  ipcMain.on(
+    'setPreferences',
+    (_event, preferencesUpdate: Optional<DemanaPreferences, 'language'>) => {
+      preferenceService.preferences = preferencesUpdate;
+    }
+  );
 
   ipcMain.handle('getPreferences', (_event): DemanaPreferences => {
     return preferenceService.preferences;
   });
+
+  // RUNTIME CONFIGURATION
+  ipcMain.handle('getRuntimeConfiguration', (_event): Record<string, unknown> => {
+    return runtimeConfigService.publicRuntimeConfig;
+  });
+
+  // TEMPORARY DATA
+  ipcMain.handle(
+    'getTemporaryData',
+    (_event): Optional<DemanaTemporaryDataDto, 'redirectionRoute'> => {
+      const { currentRouteName } = temporaryDataService.data;
+
+      return {
+        redirectionRoute: currentRouteName
+      };
+    }
+  );
+
+  ipcMain.on(
+    'setTemporaryData',
+    (_event, { key, value }: { key: keyof DemanaTemporaryDataDto; value: string | null }): void => {
+      switch (key) {
+        case 'redirectionRoute':
+          temporaryDataService.currentRouteName = value;
+          break;
+      }
+    }
+  );
 
   // I18N
   ipcMain.handle('getAvailableLocaleCodes', (_event): DemanaLocaleCode[] => {
     return translationService.availableLocaleCodes;
   });
 
-  ipcMain.handle('getAllTranslations', (_event): Record<DemanaLocaleCode, DemanaLocaleTranslation> => {
-    return translationService.allTranslations;
-  });
+  ipcMain.handle(
+    'getAllTranslations',
+    (_event): Record<DemanaLocaleCode, DemanaLocaleTranslation> => {
+      return translationService.allTranslations;
+    }
+  );
 
   // APP BEHAVIOUR
   ipcMain.handle('minimizeWindow', (event): boolean => {
     try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
 
       if (senderProcess.minimizable) {
-        senderProcess.minimize()
+        senderProcess.minimize();
       }
 
-      return senderProcess.isMinimized()
+      return senderProcess.isMinimized();
     } catch (exception) {
-      throw new Error(`Failed to minimize a window: ${(exception as Error).message}`, { cause: exception })
+      throw new Error(`Failed to minimize a window: ${(exception as Error).message}`, {
+        cause: exception
+      });
     }
   });
 
   ipcMain.handle('maximizeWindow', (event): boolean => {
     try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
 
       if (senderProcess.maximizable) {
-        senderProcess.maximize()
+        senderProcess.maximize();
       }
 
-      return senderProcess.isMaximized()
+      return senderProcess.isMaximized();
     } catch (exception) {
-      throw new Error(`Failed to maximize a window: ${(exception as Error).message}`, { cause: exception })
+      throw new Error(`Failed to maximize a window: ${(exception as Error).message}`, {
+        cause: exception
+      });
     }
   });
 
   ipcMain.handle('restoreWindow', (event): boolean => {
     try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
 
-      senderProcess.unmaximize()
+      senderProcess.unmaximize();
 
-      return senderProcess.isMaximized()
+      return senderProcess.isMaximized();
     } catch (exception) {
-      throw new Error(`Failed to restore a window: ${(exception as Error).message}`, { cause: exception })
+      throw new Error(`Failed to restore a window: ${(exception as Error).message}`, {
+        cause: exception
+      });
     }
   });
 
   ipcMain.handle('closeWindow', (event): boolean => {
     try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender)
+      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
 
       if (senderProcess.closable) {
-        senderProcess.close()
+        senderProcess.close();
       }
 
-      return senderProcess.isDestroyed()
+      return senderProcess.isDestroyed();
     } catch (exception) {
-      throw new Error(`Failed to close a window: ${(exception as Error).message}`, { cause: exception })
+      throw new Error(`Failed to close a window: ${(exception as Error).message}`, {
+        cause: exception
+      });
     }
   });
+
+  // LOGGING
+  ipcMain.on(
+    'log',
+    (
+      _event,
+      {
+        message,
+        meta,
+        level,
+        service
+      }: { message: string; meta: unknown[]; level: string; service: string }
+    ): void => {
+      useLogger({ service, isMainProcess: false }).logger.log(level, message, meta);
+    }
+  );
 }
 
 function initializeServices(): void {
-  const { id } = getOrCreateMainUiProcess();
-
-  new SessionService(id);
-
-  preferenceService = new PreferencesService(userDataStore)
-  preferenceService.setDefaultValues({ language: parseLocale(app.getLocale()) })
-
-  translationService = new TranslationService(preferenceService);
-
-  const { translate } = translationService;
+  preferenceService.setDefaultValues({ language: parseLocale(app.getLocale()) });
+  temporaryDataService.setDefaultValues();
+  printerService.setDefaultValues();
 
   new TrayService({
     icon,
     contextMenuContent: [
       {
-        label: translate('globals.applicationName'),
+        label: translationService.translate('globals.applicationName'),
         enabled: false
       },
       {
         type: 'separator'
       },
       {
-        label: translate('tray.actions.open'),
-        type: 'normal',
-        click: () => showMainUiProcess(),
-        role: 'reload'
+        label: translationService.translate('tray.links.preferences'),
+        click: () => showMainUiProcess('Preferences'),
+        type: 'normal'
       },
       {
-        label: translate('tray.actions.exit'),
+        type: 'separator'
+      },
+      {
+        label: translationService.translate('tray.actions.open'),
+        type: 'normal',
+        click: () => showMainUiProcess()
+      },
+      {
+        label: translationService.translate('tray.actions.exit'),
         type: 'normal',
         click: () => beforeApplicationExit(),
         role: 'quit'
@@ -201,16 +287,20 @@ function initializeServices(): void {
   })
     .buildTrayContextMenu()
     .on('click', () => showMainUiProcess());
-
-  printerService = new PrinterService(userDataStore);
-  printerService.setDefaultValues()
 }
 
-function showMainUiProcess(): void {
+function showMainUiProcess(routeName?: string): void {
   const mainUiProcess = getOrCreateMainUiProcess();
+  sessionService = new SessionService(mainUiProcess.id);
+
+  if (routeName) {
+    temporaryDataService.currentRouteName = routeName;
+  }
 
   if (!mainUiProcess.isVisible()) {
     mainUiProcess.show();
+  } else if (mainUiProcess.isVisible() && routeName) {
+    pushEventToProcess({ name: '@window:external-navigation', value: routeName }, mainUiProcess);
   }
 
   if (!mainUiProcess.isFocused()) {
@@ -239,7 +329,7 @@ app.whenReady().then(async () => {
   });
 
   mainWorkerProcess = processService.createProcess('worker', {
-    mode: isDev() ? 'development' : 'production',
+    mode: runtimeConfigService.isDev ? 'development' : 'production',
     window: {
       content: join(__dirname, '../renderer/worker/index.html'),
       icon,
@@ -255,18 +345,6 @@ app.whenReady().then(async () => {
 
   mainUiProcess = getOrCreateMainUiProcess();
 
-  mainUiProcess.on('close', () => {
-    if (!isApplicationBeingClosed) {
-      const { translate } = translationService;
-
-      notificationService.showNotification({
-        title: translate('notifications.runningInbackground.title'),
-        message: translate('notifications.runningInbackground.message'),
-        icon
-      });
-    }
-  });
-
   initializeIpcHandlers();
   initializeServices();
 
@@ -278,10 +356,10 @@ app.whenReady().then(async () => {
     10 * 1000
   );
 
-  if (isDev()) {
+  if (runtimeConfigService.isDev) {
     try {
       await installExtension(VUEJS_DEVTOOLS);
-      console.log('Vue devtools are installed!');
+      logger.debug('Vue devtools are installed!');
     } catch (exception) {
       console.error('Failed to install Vue devtools', exception);
     }

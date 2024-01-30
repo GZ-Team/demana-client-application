@@ -6,8 +6,8 @@ export type DemanaNotificationOptions = {
   icon?: NativeImage;
 };
 
-export default class {
-  defaultIcon: string;
+export default class NotificationService {
+  private defaultIcon: string;
 
   constructor(defaultIcon: NativeImage) {
     this.defaultIcon = defaultIcon.toDataURL();

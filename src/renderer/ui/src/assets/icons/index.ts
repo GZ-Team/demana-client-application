@@ -23,151 +23,151 @@ import russianFlagRounded from './svg/flags/russian-flag-rounded.svg';
 import japaneseFlagRounded from './svg/flags/japanese-flag-rounded.svg';
 
 type DemanaIcon = {
-    icon: string
-    name: string
-}
-
-type DemanaLocaleIcon = {
-    regular: DemanaIcon
-    rounded: DemanaIcon
-}
-
-export const icons: Record<string, DemanaIcon> = {
-    demanaLogo: {
-        icon: demanaLogo,
-        name: 'demanaLogo'
-    },
-    catalanFlag: {
-        icon: catalanFlag,
-        name: 'catalanFlag'
-    },
-    spanishFlag: {
-        icon: spanishFlag,
-        name: 'spanishFlag'
-    },
-    ukFlag: {
-        icon: ukFlag,
-        name: 'ukFlag'
-    },
-    chineseFlag: {
-        icon: chineseFlag,
-        name: 'chineseFlag'
-    },
-    germanFlag: {
-        icon: germanFlag,
-        name: 'germanFlag'
-    },
-    frenchFlag: {
-        icon: frenchFlag,
-        name: 'frenchFlag'
-    },
-    dutchFlag: {
-        icon: dutchFlag,
-        name: 'dutchFlag'
-    },
-    italianFlag: {
-        icon: italianFlag,
-        name: 'italianFlag'
-    },
-    russianFlag: {
-        icon: russianFlag,
-        name: 'russianFlag'
-    },
-    japaneseFlag: {
-        icon: japaneseFlag,
-        name: 'japaneseFlag'
-    },
-    catalanFlagRounded: {
-        icon: catalanFlagRounded,
-        name: 'catalanFlagRounded'
-    },
-    spanishFlagRounded: {
-        icon: spanishFlagRounded,
-        name: 'spanishFlagRounded'
-    },
-    ukFlagRounded: {
-        icon: ukFlagRounded,
-        name: 'ukFlagRounded'
-    },
-    chineseFlagRounded: {
-        icon: chineseFlagRounded,
-        name: 'chineseFlagRounded'
-    },
-    germanFlagRounded: {
-        icon: germanFlagRounded,
-        name: 'germanFlagRounded'
-    },
-    frenchFlagRounded: {
-        icon: frenchFlagRounded,
-        name: 'frenchFlagRounded'
-    },
-    dutchFlagRounded: {
-        icon: dutchFlagRounded,
-        name: 'dutchFlagRounded'
-    },
-    italianFlagRounded: {
-        icon: italianFlagRounded,
-        name: 'italianFlagRounded'
-    },
-    russianFlagRounded: {
-        icon: russianFlagRounded,
-        name: 'russianFlagRounded'
-    },
-    japaneseFlagRounded: {
-        icon: japaneseFlagRounded,
-        name: 'japaneseFlagRounded'
-    }
-}
-
-export const localeFlags: Record<string, DemanaLocaleIcon> = {
-    en: {
-        regular: icons.ukFlag,
-        rounded: icons.ukFlagRounded
-    },
-    es: {
-        regular: icons.spanishFlag,
-        rounded: icons.spanishFlagRounded
-    },
-    ca: {
-        regular: icons.catalanFlag,
-        rounded: icons.catalanFlagRounded
-    },
-    cn: {
-        regular: icons.chineseFlag,
-        rounded: icons.chineseFlagRounded
-    },
-    ru: {
-        regular: icons.russianFlag,
-        rounded: icons.russianFlagRounded
-    },
-    nl: {
-        regular: icons.dutchFlag,
-        rounded: icons.dutchFlagRounded
-    },
-    de: {
-        regular: icons.germanFlag,
-        rounded: icons.germanFlagRounded
-    },
-    fr: {
-        regular: icons.frenchFlag,
-        rounded: icons.frenchFlagRounded
-    },
-    it: {
-        regular: icons.italianFlag,
-        rounded: icons.italianFlagRounded
-    },
-    ja: {
-        regular: icons.japaneseFlag,
-        rounded: icons.japaneseFlagRounded
-    }
+  icon: string;
+  name: string;
 };
 
-export function getFlagIconForLocaleTag(localeTag: string, rounded: boolean = false): DemanaIcon | null {
-    const selectedLocaleFlag = localeFlags[localeTag];
+type DemanaLocaleIcon = {
+  regular: DemanaIcon;
+  rounded: DemanaIcon;
+};
 
-    if (!selectedLocaleFlag) {
-        return null;
-    }
+export const icons: Record<string, DemanaIcon> = {
+  demanaLogo: {
+    icon: demanaLogo,
+    name: 'demanaLogo'
+  },
+  catalanFlag: {
+    icon: catalanFlag,
+    name: 'catalanFlag'
+  },
+  spanishFlag: {
+    icon: spanishFlag,
+    name: 'spanishFlag'
+  },
+  ukFlag: {
+    icon: ukFlag,
+    name: 'ukFlag'
+  },
+  chineseFlag: {
+    icon: chineseFlag,
+    name: 'chineseFlag'
+  },
+  germanFlag: {
+    icon: germanFlag,
+    name: 'germanFlag'
+  },
+  frenchFlag: {
+    icon: frenchFlag,
+    name: 'frenchFlag'
+  },
+  dutchFlag: {
+    icon: dutchFlag,
+    name: 'dutchFlag'
+  },
+  italianFlag: {
+    icon: italianFlag,
+    name: 'italianFlag'
+  },
+  russianFlag: {
+    icon: russianFlag,
+    name: 'russianFlag'
+  },
+  japaneseFlag: {
+    icon: japaneseFlag,
+    name: 'japaneseFlag'
+  },
+  catalanFlagRounded: {
+    icon: catalanFlagRounded,
+    name: 'catalanFlagRounded'
+  },
+  spanishFlagRounded: {
+    icon: spanishFlagRounded,
+    name: 'spanishFlagRounded'
+  },
+  ukFlagRounded: {
+    icon: ukFlagRounded,
+    name: 'ukFlagRounded'
+  },
+  chineseFlagRounded: {
+    icon: chineseFlagRounded,
+    name: 'chineseFlagRounded'
+  },
+  germanFlagRounded: {
+    icon: germanFlagRounded,
+    name: 'germanFlagRounded'
+  },
+  frenchFlagRounded: {
+    icon: frenchFlagRounded,
+    name: 'frenchFlagRounded'
+  },
+  dutchFlagRounded: {
+    icon: dutchFlagRounded,
+    name: 'dutchFlagRounded'
+  },
+  italianFlagRounded: {
+    icon: italianFlagRounded,
+    name: 'italianFlagRounded'
+  },
+  russianFlagRounded: {
+    icon: russianFlagRounded,
+    name: 'russianFlagRounded'
+  },
+  japaneseFlagRounded: {
+    icon: japaneseFlagRounded,
+    name: 'japaneseFlagRounded'
+  }
+};
 
-    return selectedLocaleFlag[rounded ? 'rounded' : 'regular'];
+export const localeFlags: Record<string, DemanaLocaleIcon> = {
+  en: {
+    regular: icons.ukFlag,
+    rounded: icons.ukFlagRounded
+  },
+  es: {
+    regular: icons.spanishFlag,
+    rounded: icons.spanishFlagRounded
+  },
+  ca: {
+    regular: icons.catalanFlag,
+    rounded: icons.catalanFlagRounded
+  },
+  cn: {
+    regular: icons.chineseFlag,
+    rounded: icons.chineseFlagRounded
+  },
+  ru: {
+    regular: icons.russianFlag,
+    rounded: icons.russianFlagRounded
+  },
+  nl: {
+    regular: icons.dutchFlag,
+    rounded: icons.dutchFlagRounded
+  },
+  de: {
+    regular: icons.germanFlag,
+    rounded: icons.germanFlagRounded
+  },
+  fr: {
+    regular: icons.frenchFlag,
+    rounded: icons.frenchFlagRounded
+  },
+  it: {
+    regular: icons.italianFlag,
+    rounded: icons.italianFlagRounded
+  },
+  ja: {
+    regular: icons.japaneseFlag,
+    rounded: icons.japaneseFlagRounded
+  }
+};
+
+export function getFlagIconForLocaleTag(localeTag: string, rounded = false): DemanaIcon | null {
+  const selectedLocaleFlag = localeFlags[localeTag];
+
+  if (!selectedLocaleFlag) {
+    return null;
+  }
+
+  return selectedLocaleFlag[rounded ? 'rounded' : 'regular'];
 }

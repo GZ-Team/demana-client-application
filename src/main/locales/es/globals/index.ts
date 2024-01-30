@@ -1,5 +1,5 @@
-import { applicationName, languages } from "../../shared";
-import validation from "./validation";
+import { applicationName, languages } from '../../shared';
+import validation from './validation';
 
 export default {
   applicationName,

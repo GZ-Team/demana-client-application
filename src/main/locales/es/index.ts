@@ -1,7 +1,7 @@
 import globals from './globals';
 import notifications from './notifications';
 import tray from './tray';
-import pages from './pages'
+import pages from './pages';
 
 export default {
   globals,

@@ -1,23 +1,26 @@
-import type StorageService from './storageService';
+import StorageService from './storageService';
+
 import type { DemanaPrintingConfiguration } from 'types';
 
-export default class {
-  constructor(private userDataStore: StorageService) { }
+export default class PrinterService extends StorageService {
+  constructor() {
+    super('userData', 'configuration.json');
+  }
 
   get selectedPrinterId(): string {
-    return this.userDataStore.get('selectedPrinterId') as string;
+    return super.get('selectedPrinterId') as string;
   }
 
   set selectedPrinterId(newPrinterId: string) {
-    this.userDataStore.set('selectedPrinterId', newPrinterId);
+    super.set('selectedPrinterId', newPrinterId);
   }
 
   get printingConfiguration(): DemanaPrintingConfiguration {
-    return this.userDataStore.get('printingConfiguration') as DemanaPrintingConfiguration;
+    return super.get('printingConfiguration') as DemanaPrintingConfiguration;
   }
 
   set printingConfiguration(newPrintingConfiguration: DemanaPrintingConfiguration) {
-    this.userDataStore.set('printingConfiguration', newPrintingConfiguration)
+    super.set('printingConfiguration', newPrintingConfiguration);
   }
 
   setDefaultValues() {
@@ -25,8 +28,8 @@ export default class {
       automatic: true,
       paperMargin: 1,
       paperWidth: 10
-    }
+    };
 
-    this.userDataStore.setDefaultValues('printingConfiguration', defaultPrintingConfiguration)
+    super.setDefaultValues('printingConfiguration', defaultPrintingConfiguration);
   }
 }

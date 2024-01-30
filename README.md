@@ -4,6 +4,11 @@ An Electron application built with Vue and TypeScript.
 
 ## Project Setup
 
+### Prerequisites
+
+- [Node.js](https://nodejs.org/en/download/current): >= v16.14
+- [PnpM](https://pnpm.io/installation)
+
 ### Install
 
 ```bash
@@ -16,10 +21,16 @@ $ pnpm install
 $ pnpm dev
 ```
 
-or
+to enable hot-reload: use
 
 ```bash
 $ pnpm dev:hot-reload
+```
+
+### Preview
+
+```bash
+$ pnpm preview
 ```
 
 ### Build
@@ -38,3 +49,8 @@ $ pnpm build:linux
 ## Future considerations
 
 - [Electronegativity](https://github.com/doyensec/electronegativity)
+- Custom installer:
+  - [web-installer](https://www.electron.build/configuration/nsis.html#web-installer)
+  - [custom-nsis-script](https://www.electron.build/configuration/nsis.html#custom-nsis-script)
+- [Custom application frame](https://www.electronjs.org/docs/latest/tutorial/window-customization#create-frameless-windows)
+- [Online/Offline Event Detection](https://www.electronjs.org/docs/latest/tutorial/online-offline-events)

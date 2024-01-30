@@ -1,18 +1,21 @@
 import allLocaleTranslations from '../locales';
 
-import type PreferencesService from './preferencesService';
-import type { DemanaLocaleCode, DemanaLocaleTranslation, DemanaLocaleTranslationDto } from '../../types';
+import PreferencesService from './preferencesService';
 
-export default class {
-  constructor(private preferenceService: PreferencesService) { }
+import type {
+  DemanaLocaleCode,
+  DemanaLocaleTranslation,
+  DemanaLocaleTranslationDto
+} from '../../types';
 
+export default class TranslationService extends PreferencesService {
   private get locale(): DemanaLocaleCode {
-    return this.preferenceService.preferences.language as DemanaLocaleCode
+    return super.preferences.language as DemanaLocaleCode;
   }
 
   get translations(): DemanaLocaleTranslationDto {
     try {
-      let localeTranslations = {
+      const localeTranslations = {
         locale: this.locale,
         translations: this.allTranslations[this.locale]
       } as DemanaLocaleTranslationDto;
@@ -24,20 +27,22 @@ export default class {
       return localeTranslations;
     } catch (exception) {
       throw new Error(
-        `Failed to get translations for locale codes: ${(exception as Error).message} [current: ${this.locale}]`
+        `Failed to get translations for locale codes: ${(exception as Error).message} [current: ${
+          this.locale
+        }]`
       );
     }
   }
 
   get allTranslations(): Record<DemanaLocaleCode, DemanaLocaleTranslation> {
-    return allLocaleTranslations
+    return allLocaleTranslations;
   }
 
   get availableLocaleCodes(): DemanaLocaleCode[] {
     return Object.keys(this.allTranslations) as DemanaLocaleCode[];
   }
 
-  translate = (key: string, context: Record<string, string> = {}): string => {
+  translate(key: string, context: Record<string, string> = {}): string {
     try {
       const rawTranslation = key
         .split('.')
@@ -61,5 +66,5 @@ export default class {
         cause: exception
       });
     }
-  };
+  }
 }

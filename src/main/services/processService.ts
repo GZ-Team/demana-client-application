@@ -3,7 +3,7 @@ import { join } from 'path';
 
 import { pushEventToProcess } from '../utils/eventUtils';
 
-import type { NativeImage, BrowserWindowConstructorOptions } from 'electron'
+import type { NativeImage, BrowserWindowConstructorOptions } from 'electron';
 import type { DemanaProcessType, DemanaWindowState } from 'types';
 
 export enum DemanaPreloadScriptPath {
@@ -21,12 +21,15 @@ type DemanaWindowOptions = {
 
 type DemanaProcessMode = 'development' | 'production';
 
+type DemanaProcessEventName = 'close';
+
 type DemanaProcessOptions = {
   window: DemanaWindowOptions;
   mode?: DemanaProcessMode;
+  events?: Record<DemanaProcessEventName, Function>;
 };
 
-export default class {
+export default class ProcessService {
   private get commonProcessProperties(): BrowserWindowConstructorOptions {
     return {
       show: false,
@@ -46,7 +49,7 @@ export default class {
           isClosable: false,
           minimizable: false,
           maximizable: false
-        }
+        };
       }
 
       return {
@@ -55,15 +58,17 @@ export default class {
         isClosable: process.isClosable(),
         minimizable: process.minimizable,
         maximizable: process.maximizable
-      }
+      };
     } catch (exception) {
-      throw new Error(`Failed to get the state of a window: ${(exception as Error).message}`, { cause: exception })
+      throw new Error(`Failed to get the state of a window: ${(exception as Error).message}`, {
+        cause: exception
+      });
     }
   }
 
   private createUiProcess(options: DemanaProcessOptions): BrowserWindow {
     try {
-      const { mode, window } = options;
+      const { mode, window, events } = options;
 
       const isDev = mode === 'development';
 
@@ -84,10 +89,25 @@ export default class {
       });
 
       uiProcess.on('ready-to-show', () => {
-        pushEventToProcess({ name: '@window:new', value: this.getWindowState(uiProcess) }, uiProcess)
+        pushEventToProcess(
+          { name: '@window:new', value: this.getWindowState(uiProcess) },
+          uiProcess
+        );
 
         uiProcess.show();
       });
+
+      if (events) {
+        Object.entries(events)
+          .filter(([_, eventCallback]) => eventCallback)
+          .forEach(([eventName, eventCallback]) => {
+            switch (eventName) {
+              case 'close':
+                uiProcess.on('close', eventCallback);
+                break;
+            }
+          });
+      }
 
       uiProcess.webContents.setWindowOpenHandler((details) => {
         shell.openExternal(details.url);

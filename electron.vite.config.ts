@@ -5,10 +5,8 @@ import vuetify from 'vite-plugin-vuetify';
 
 export default defineConfig({
   main: {
-    plugins: [
-      externalizeDepsPlugin(),
-      bytecodePlugin()
-    ]
+    envPrefix: 'V_DEMANA_',
+    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
   },
   preload: {
     build: {
@@ -20,10 +18,7 @@ export default defineConfig({
         }
       }
     },
-    plugins: [
-      externalizeDepsPlugin(),
-      bytecodePlugin()
-    ]
+    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
   },
   renderer: {
     server: {

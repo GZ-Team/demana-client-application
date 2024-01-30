@@ -1,6 +1,6 @@
 import { is } from '@electron-toolkit/utils';
 
-export function getEnvMode(): string {
+export function getEnvironmentMode(): string {
   return import.meta.env.MODE;
 }
 
@@ -9,5 +9,5 @@ export function isLocal(): boolean {
 }
 
 export function isDev(): boolean {
-  return getEnvMode() === 'development';
+  return getEnvironmentMode() === 'development';
 }

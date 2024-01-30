@@ -8,8 +8,10 @@ const localeTranslations = {
   en,
   ca,
   es
-} as Record<DemanaLocaleCode, DemanaLocaleTranslation>
+} as Record<DemanaLocaleCode, DemanaLocaleTranslation>;
 
-export const availableLocaleCodes: DemanaLocaleCode[] = Object.keys(localeTranslations) as DemanaLocaleCode[]
+export const availableLocaleCodes: DemanaLocaleCode[] = Object.keys(
+  localeTranslations
+) as DemanaLocaleCode[];
 
-export default localeTranslations
+export default localeTranslations;

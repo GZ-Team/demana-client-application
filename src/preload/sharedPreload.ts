@@ -1,9 +1,18 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
-import type { DemanaLocaleCode, DemanaLocaleTranslation, DemanaMessage, DemanaPreferences, DemanaPrintingConfiguration, DemanaWindowState } from 'types';
+import type {
+  DemanaLocaleCode,
+  DemanaLocaleTranslation,
+  DemanaMessage,
+  DemanaPreferences,
+  DemanaPrintingConfiguration,
+  DemanaTemporaryDataDto,
+  DemanaWindowState,
+  Optional
+} from 'types';
 
-export interface DemanaPreloadApi { }
+export interface DemanaPreloadApi {}
 
 export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   // MESSAGES
@@ -14,6 +23,11 @@ export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   getPrintingConfiguration: () => Promise<DemanaPrintingConfiguration>;
   // PREFERENCES
   getPreferences: () => Promise<DemanaPreferences>;
+  // RUNTIME CONFIGURATION
+  getRuntimeConfiguration: () => Promise<Record<string, unknown>>;
+  // TEMPORARY
+  getTemporaryData: () => Promise<Optional<DemanaTemporaryDataDto, 'redirectionRoute'>>;
+  setTemporaryData: (key: keyof DemanaTemporaryDataDto, value: string | null) => void;
   // I18N
   getAvailableLocaleCodes: () => Promise<DemanaLocaleCode[]>;
   getAllTranslations: () => Promise<Record<DemanaLocaleCode, DemanaLocaleTranslation>>;
@@ -25,28 +39,45 @@ export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   restoreWindow: () => Promise<boolean>;
   closeWindow: () => Promise<boolean>;
   '@window:new': (callback: (state: DemanaWindowState) => {}) => void;
+  // LOGGING
+  log: (
+    { level, service }: { level: string; service: string },
+    message: string,
+    ...meta: unknown[]
+  ) => void;
 };
 
 export const sharedPreloadApi: DemanaSharedPreloadApi = {
   // MESSAGES
   sendMessage: (message) => ipcRenderer.send('sendMessage', message),
-  '@messages:new': (callback) => ipcRenderer.on('@messages:new', (_event, value: DemanaMessage) => callback(value)),
+  '@messages:new': (callback) =>
+    ipcRenderer.on('@messages:new', (_event, value: DemanaMessage) => callback(value)),
   // PRINTING
   getSelectedPrinter: () => ipcRenderer.invoke('getSelectedPrinter'),
   getPrintingConfiguration: () => ipcRenderer.invoke('getPrintingConfiguration'),
   // PREFERENCES
   getPreferences: () => ipcRenderer.invoke('getPreferences'),
+  // RUNTIME CONFIGURATION
+  getRuntimeConfiguration: () => ipcRenderer.invoke('getRuntimeConfiguration'),
+  // TEMPORARY DATA
+  getTemporaryData: () => ipcRenderer.invoke('getTemporaryData'),
+  setTemporaryData: (key, value) => ipcRenderer.send('setTemporaryData', { key, value }),
   // I18N
   getAvailableLocaleCodes: () => ipcRenderer.invoke('getAvailableLocaleCodes'),
   getAllTranslations: () => ipcRenderer.invoke('getAllTranslations'),
   // ORDERS
-  '@orders:new': (callback) => ipcRenderer.on('@orders:new', (_event, value: unknown) => callback(value)),
+  '@orders:new': (callback) =>
+    ipcRenderer.on('@orders:new', (_event, value: unknown) => callback(value)),
   // APP BEHAVIOUR
   minimizeWindow: () => ipcRenderer.invoke('minimizeWindow'),
   maximizeWindow: () => ipcRenderer.invoke('maximizeWindow'),
   restoreWindow: () => ipcRenderer.invoke('restoreWindow'),
   closeWindow: () => ipcRenderer.invoke('closeWindow'),
-  '@window:new': (callback) => ipcRenderer.on('@window:new', (_event, value: DemanaWindowState) => callback(value))
+  '@window:new': (callback) =>
+    ipcRenderer.on('@window:new', (_event, value: DemanaWindowState) => callback(value)),
+  // LOGGING
+  log: ({ level, service }, message, ...meta) =>
+    ipcRenderer.send('log', { message, meta, level, service })
 };
 
 export function attachApisToProcess(

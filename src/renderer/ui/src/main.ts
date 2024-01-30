@@ -1,14 +1,13 @@
 import { createApp } from 'vue';
-import { createPinia } from 'pinia';
 import { createI18n } from 'vue-i18n';
+import { createPinia } from 'pinia';
 
 import errorHandler from './plugins/errorHandler';
 import deviceEventListeners from './plugins/deviceEventListeners';
 import globalComponents from './plugins/globalComponents';
-import vuetify from './plugins/vuetify'
-import apiEventListeners from './plugins/apiEventListeners';
+import vuetify from './plugins/vuetify';
 
-import router from './router';
+import { createDemanaRouter } from './router';
 
 import './assets/styling/_main.scss';
 
@@ -20,14 +19,14 @@ const i18n = createI18n({
   locale: 'en',
   fallbackLocale: 'en'
 });
+const demanaRouter = createDemanaRouter();
 
 createApp(App)
   .use(pinia)
   .use(vuetify)
   .use(i18n)
-  .use(router)
+  .use(demanaRouter)
   .use(errorHandler)
   .use(deviceEventListeners)
   .use(globalComponents)
-  .use(apiEventListeners)
   .mount('#demana-client-application');

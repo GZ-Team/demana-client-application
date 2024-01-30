@@ -1,31 +1,16 @@
-import * as VueRouter from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 
-import DefaultLayout from '../layouts/default.vue';
+import { installMiddleware } from './middleware';
 
-import PrinterConfigurationPage from '../pages/printerConfiguration.vue';
-import PreferencesPage from '../pages/preferences.vue';
+import routes from './routes';
 
-const routes = [
-  {
-    path: '',
-    component: DefaultLayout,
-    alias: ['/ui/index.html'],
-    children: [
-      {
-        path: '',
-        name: 'PrinterConfiguration',
-        component: PrinterConfigurationPage
-      },
-      {
-        path: 'preferences',
-        name: 'Preferences',
-        component: PreferencesPage
-      }
-    ]
-  }
-] as VueRouter.RouterOptions['routes'];
+export function createDemanaRouter() {
+  const router = createRouter({
+    history: createWebHistory(),
+    routes
+  });
 
-export default VueRouter.createRouter({
-  history: VueRouter.createWebHistory(),
-  routes
-});
+  installMiddleware(router);
+
+  return router;
+}

@@ -10,16 +10,24 @@ export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   setSelectedPrinter: (printerId: string | number | null) => void;
   setPrintingConfiguration: (printingConfiguration: DemanaPrintingConfiguration) => void;
   // PREFERENCES
-  setPreferences: (preferencesUpdate: Optional<DemanaPreferences, 'language'>) => void
+  setPreferences: (preferencesUpdate: Optional<DemanaPreferences, 'language'>) => void;
+  // APP BEHAVIOUR
+  '@window:external-navigation': (callback: (routeName: string) => {}) => void;
 };
 
 const uiPreloadApi: DemanaUiProcessPreloadApi = {
   ...sharedPreloadApi,
   // PRINTING
   setSelectedPrinter: (printerId) => ipcRenderer.send('setSelectedPrinter', printerId),
-  setPrintingConfiguration: (printingConfiguration) => ipcRenderer.send('setPrintingConfiguration', printingConfiguration),
+  setPrintingConfiguration: (printingConfiguration) =>
+    ipcRenderer.send('setPrintingConfiguration', printingConfiguration),
   // PREFERENCES
-  setPreferences: (preferencesUpdate) => ipcRenderer.send('setPreferences', preferencesUpdate)
+  setPreferences: (preferencesUpdate) => ipcRenderer.send('setPreferences', preferencesUpdate),
+  // APP BEHAVIOUR
+  '@window:external-navigation': (callback) =>
+    ipcRenderer.on('@window:external-navigation', (_event, routeName: string) =>
+      callback(routeName)
+    )
 };
 
 attachApisToProcess({ api: uiPreloadApi });

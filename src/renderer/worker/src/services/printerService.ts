@@ -1,16 +1,36 @@
-import { Printer } from '@worker/models/printer';
+import { Printer } from '../models/printer';
 
-export default class {
-  async getSelectedPrinter(): Promise<Printer> {
-    const selectedPrinterId = await window.api.getSelectedPrinter();
-    return new Printer(selectedPrinterId);
+import useLogger from '../utils/loggingUtils';
+
+export default class PrinterService {
+  private logger = useLogger({ service: 'PrinterService' });
+
+  async getSelectedPrinter(): Promise<Printer | null> {
+    const [selectedPrinterId, allUsbPrinters] = await Promise.all([
+      window.api.getSelectedPrinter(),
+      navigator.usb.getDevices()
+    ]);
+
+    const selectedUsbPrinter = allUsbPrinters.find(
+      ({ productId }) => productId === selectedPrinterId
+    );
+
+    if (!selectedUsbPrinter) {
+      return null;
+    }
+
+    return new Printer(selectedUsbPrinter);
   }
 
   async print(): Promise<void> {
-    const selectedPrinter = await this.getSelectedPrinter();
+    try {
+      const selectedPrinter = await this.getSelectedPrinter();
 
-    console.log('Printing is not implemented yet', { selectedPrinter });
+      throw new Error('Printing is not implemented yet.', { cause: selectedPrinter });
 
-    // await printer.printText('')
+      // await printer.printText('')
+    } catch (exception) {
+      this.logger.warning(`Failed to print: ${(exception as Error).message}`);
+    }
   }
 }

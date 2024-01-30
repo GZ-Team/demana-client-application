@@ -1,18 +1,26 @@
 import { getBrowserWindowByProcessId } from '../utils/processUtils';
 
+import useLogger from '../utils/loggerUtils';
+
 import type { SerialPort, Session, USBDevice } from 'electron';
+import type { Logger } from 'winston';
 
 const ALLOWED_PERMISSIONS = ['usb', 'serial'];
 
-export default class {
+export default class SessionService {
+  private logger: Logger = useLogger({ service: 'SessionService' }).logger;
+
+  private windowId: number;
+
   private grantedDeviceThroughPermHandler: SerialPort | USBDevice | null = null;
 
-  constructor(private windowId: number) {
+  constructor(windowId: number) {
+    this.windowId = windowId;
     this.setup();
   }
 
   get windowSession(): Session {
-    return getBrowserWindowByProcessId(this.windowId).webContents.session
+    return getBrowserWindowByProcessId(this.windowId).webContents.session;
   }
 
   private setup(): void {
@@ -54,12 +62,12 @@ export default class {
       // Add listeners to handle ports being added or removed before the callback for `select-serial-port`
       // is called.
       this.windowSession.on('serial-port-added', (_event, port) => {
-        console.log('serial-port-added FIRED WITH', port);
+        this.logger.debug('serial-port-added FIRED WITH', port);
         // Optionally update portList to add the new port
       });
 
       this.windowSession.on('serial-port-removed', (_event, port) => {
-        console.log('serial-port-removed FIRED WITH', port);
+        this.logger.debug('serial-port-removed FIRED WITH', port);
         // Optionally update portList to remove the port
       });
 
@@ -69,7 +77,7 @@ export default class {
         (device) => device.productId === this.grantedDeviceThroughPermHandler?.productId
       );
 
-      console.log({ deviceToReturn, portList });
+      this.logger.debug({ deviceToReturn, portList });
 
       if (deviceToReturn) {
         callback(deviceToReturn.portId);

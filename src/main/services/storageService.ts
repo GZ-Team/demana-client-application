@@ -1,44 +1,37 @@
-import { app } from 'electron';
-import { resolve } from 'path';
+import { getFileContents, resolveAppFilePath, writeFileContents } from '../utils/fileUtils';
+import { cloneDeep, isNil } from '../utils/sharedUtils';
+import useLogger from '../utils/loggerUtils';
 
-import { getFileContents, writeFileContents } from '../utils/fileUtils';
-import { isNil } from '../utils/sharedUtils';
-
-type StorageKeys =
-  | 'home'
-  | 'appData'
-  | 'userData'
-  | 'sessionData'
-  | 'temp'
-  | 'exe'
-  | 'module'
-  | 'desktop'
-  | 'documents'
-  | 'downloads'
-  | 'music'
-  | 'pictures'
-  | 'videos'
-  | 'recent'
-  | 'logs'
-  | 'crashDumps';
+import type { Logger } from 'winston';
+import type { StorageKey } from 'types';
 
 type UserDataStorageFileNames = 'configuration.json';
+type TempStorageFileNames = 'temp.json';
 
-type StorageFileNames = UserDataStorageFileNames;
+type StorageFileNames = UserDataStorageFileNames | TempStorageFileNames;
 
 type UserDataStorageDataKeys = 'selectedPrinterId' | 'printingConfiguration' | 'preferences';
+type TempStorageDataKeys = 'currentRouteName';
 
-type StorageDataKeys = UserDataStorageDataKeys;
+type StorageDataKeys = UserDataStorageDataKeys | TempStorageDataKeys;
 
-export default class {
-  constructor(private storageKey: StorageKeys, private storageFileName: StorageFileNames) { }
+export default class StorageService {
+  private logger: Logger = useLogger({ service: 'StorageService' }).logger;
+
+  private storageKey: StorageKey;
+  private storageFileName: StorageFileNames;
+
+  constructor(storageKey: StorageKey, storageFileName: StorageFileNames) {
+    this.storageKey = storageKey;
+    this.storageFileName = storageFileName;
+  }
 
   private get storageFilePath() {
-    return resolve(app.getPath(this.storageKey), this.storageFileName);
+    return resolveAppFilePath(this.storageKey, this.storageFileName);
   }
 
   private get storageValue(): Record<string, unknown> {
-    return getFileContents(this.storageFilePath, {});
+    return cloneDeep(getFileContents(this.storageFilePath, {}));
   }
 
   private set storageValue(newStorageValue) {
@@ -50,11 +43,14 @@ export default class {
   }
 
   set(key: StorageDataKeys, value: unknown) {
+    this.logger.info(
+      `Writing the property "${key}" to the configuration file "${this.storageFilePath}".`
+    );
     this.storageValue = { ...this.storageValue, [key]: value };
   }
 
   setDefaultValues(key: StorageDataKeys, defaultValue: unknown) {
-    const existingValue = this.get(key)
+    const existingValue = this.get(key);
 
     switch (typeof existingValue) {
       case 'string':
@@ -62,22 +58,20 @@ export default class {
       case 'bigint':
       case 'boolean':
         if (isNil(existingValue)) {
-          console.log(`[storageService:setDefaultValues] Writing the property "${key}" to the configuration file "${this.storageFilePath}".`)
-          this.set(key, defaultValue)
+          this.set(key, defaultValue);
         }
-        break
+        break;
 
       case 'object':
-        console.log(`[storageService:setDefaultValueset] Writing the property "${key}" to the configuration file "${this.storageFilePath}".`)
         this.set(key, {
-          ...defaultValue as object,
-          ...existingValue
-        })
-        break
+          ...(defaultValue as object),
+          ...(existingValue as object)
+        });
+        break;
 
+      case null:
       case 'undefined':
-        console.log(`[storageService:setDefaultValues] Writing the property "${key}" to the configuration file "${this.storageFilePath}".`)
-        this.set(key, defaultValue)
+        this.set(key, defaultValue);
         break;
     }
   }

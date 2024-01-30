@@ -8,7 +8,7 @@ export type TrayServiceOptions = {
   contextMenuContent?: (MenuItemConstructorOptions | MenuItem)[];
 };
 
-export default class {
+export default class TrayService {
   private icon: NativeImage;
   private contextToolTip: string;
   private contextMenuContent: (MenuItemConstructorOptions | MenuItem)[];

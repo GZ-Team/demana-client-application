@@ -1,6 +1,6 @@
 import { usePrinterStore } from '../stores/printerStore';
 
-import type { App, Plugin } from "vue";
+import type { App, Plugin } from 'vue';
 
 export default {
   install: (_app: App) => {
@@ -22,4 +22,4 @@ export default {
       await loadAllSerialPrinters();
     });
   }
-} as Plugin
+} as Plugin;

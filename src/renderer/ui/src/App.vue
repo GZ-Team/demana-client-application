@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onErrorCaptured, onBeforeMount } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
 import { useAppStore } from './stores/appStore';
@@ -19,28 +20,35 @@ import DError from './components/DError.vue';
 import type { Ref } from 'vue';
 import type { DemanaError } from './types';
 
-const loading = ref(true)
+const loading = ref(true);
 const error = ref(null) as Ref<DemanaError | null>;
 
 const hasErrorOccured = computed(() => !!error.value);
 
-const { currentRoute, replace } = useRouter()
-const { loadPreferences, loadAvailableLocaleCodes } = useAppStore()
-const { setupI18n } = useTranslations()
+const { loadPreferences, loadAvailableLocaleCodes, loadRuntimeConfiguration } = useAppStore();
+const { setupI18n } = useTranslations();
+
+const router = useRouter();
 
 onBeforeMount(async () => {
-  if (!currentRoute.value.name) {
-    replace({ name: 'PrinterConfiguration' });
-  }
+  await Promise.all([loadPreferences(), loadAvailableLocaleCodes(), loadRuntimeConfiguration()]);
 
-  await Promise.all([
-    loadPreferences(),
-    loadAvailableLocaleCodes()
-  ])
+  await setupI18n();
 
-  await setupI18n()
+  loading.value = false;
 
-  loading.value = false
+  window.api['@messages:new'](async (message) => {
+    console.log({ message });
+  });
+
+  window.api['@window:new'](async (windowState) => {
+    const { state } = storeToRefs(useAppStore());
+    state.value = windowState;
+  });
+
+  window.api['@window:external-navigation'](async (route) => {
+    router.push({ name: route });
+  });
 });
 
 onErrorCaptured(({ name, message, stack }, _instance, info) => {

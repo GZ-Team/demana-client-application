@@ -1,25 +1,28 @@
-import type StorageService from './storageService';
+import StorageService from './storageService';
+
 import type { DemanaPreferences, Optional } from 'types';
 
-export default class {
-  constructor(private userDataStore: StorageService) { }
+export default class PreferencesServices extends StorageService {
+  constructor() {
+    super('userData', 'configuration.json');
+  }
 
   get preferences(): DemanaPreferences {
-    return this.userDataStore.get('preferences') as DemanaPreferences;
+    return (super.get('preferences') || { language: null }) as DemanaPreferences;
   }
 
   set preferences(newPreferences: Optional<DemanaPreferences, 'language'>) {
-    this.userDataStore.set('preferences', {
+    super.set('preferences', {
       ...this.preferences,
       ...newPreferences
-    })
+    });
   }
 
-  setDefaultValues(options: DemanaPreferences) {
+  setDefaultValues(options: Optional<DemanaPreferences, 'language'>) {
     const defaultPreferences: DemanaPreferences = {
       language: options.language ?? 'en'
-    }
+    };
 
-    this.userDataStore.setDefaultValues('preferences', defaultPreferences)
+    super.setDefaultValues('preferences', defaultPreferences);
   }
 }
