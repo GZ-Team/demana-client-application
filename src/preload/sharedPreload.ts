@@ -8,11 +8,10 @@ import type {
   DemanaPreferences,
   DemanaPrintingConfiguration,
   DemanaTemporaryDataDto,
-  DemanaWindowState,
   Optional
 } from 'types';
 
-export interface DemanaPreloadApi {}
+export interface DemanaPreloadApi { }
 
 export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   // MESSAGES
@@ -33,12 +32,6 @@ export type DemanaSharedPreloadApi = DemanaPreloadApi & {
   getAllTranslations: () => Promise<Record<DemanaLocaleCode, DemanaLocaleTranslation>>;
   // ORDERS
   '@orders:new': (callback: (order: unknown) => {}) => void;
-  // APP BEHAVIOUR
-  minimizeWindow: () => Promise<boolean>;
-  maximizeWindow: () => Promise<boolean>;
-  restoreWindow: () => Promise<boolean>;
-  closeWindow: () => Promise<boolean>;
-  '@window:new': (callback: (state: DemanaWindowState) => {}) => void;
   // LOGGING
   log: (
     { level, service }: { level: string; service: string },
@@ -68,13 +61,6 @@ export const sharedPreloadApi: DemanaSharedPreloadApi = {
   // ORDERS
   '@orders:new': (callback) =>
     ipcRenderer.on('@orders:new', (_event, value: unknown) => callback(value)),
-  // APP BEHAVIOUR
-  minimizeWindow: () => ipcRenderer.invoke('minimizeWindow'),
-  maximizeWindow: () => ipcRenderer.invoke('maximizeWindow'),
-  restoreWindow: () => ipcRenderer.invoke('restoreWindow'),
-  closeWindow: () => ipcRenderer.invoke('closeWindow'),
-  '@window:new': (callback) =>
-    ipcRenderer.on('@window:new', (_event, value: DemanaWindowState) => callback(value)),
   // LOGGING
   log: ({ level, service }, message, ...meta) =>
     ipcRenderer.send('log', { message, meta, level, service })

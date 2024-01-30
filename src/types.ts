@@ -112,14 +112,6 @@ export type DemanaMessage = {
   content: DemanaMessageBody;
 };
 
-export type DemanaWindowState = {
-  isMinimized: boolean;
-  isMaximized: boolean;
-  isClosable: boolean;
-  minimizable: boolean;
-  maximizable: boolean;
-};
-
 export type DemanaPrintingConfiguration = {
   automatic?: boolean;
   paperWidth?: number;

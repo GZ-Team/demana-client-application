@@ -14,7 +14,6 @@ import NotificationService from './services/notificationService';
 import ProcessService, { DemanaPreloadScriptPath } from './services/processService';
 
 import { pushEventToProcess } from './utils/eventUtils';
-import { getBrowserWindowByProcessWebContents } from './utils/processUtils';
 import { parseLocale } from './utils/i18nUtils';
 
 import type {
@@ -168,69 +167,6 @@ function initializeIpcHandlers(): void {
       return translationService.allTranslations;
     }
   );
-
-  // APP BEHAVIOUR
-  ipcMain.handle('minimizeWindow', (event): boolean => {
-    try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
-
-      if (senderProcess.minimizable) {
-        senderProcess.minimize();
-      }
-
-      return senderProcess.isMinimized();
-    } catch (exception) {
-      throw new Error(`Failed to minimize a window: ${(exception as Error).message}`, {
-        cause: exception
-      });
-    }
-  });
-
-  ipcMain.handle('maximizeWindow', (event): boolean => {
-    try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
-
-      if (senderProcess.maximizable) {
-        senderProcess.maximize();
-      }
-
-      return senderProcess.isMaximized();
-    } catch (exception) {
-      throw new Error(`Failed to maximize a window: ${(exception as Error).message}`, {
-        cause: exception
-      });
-    }
-  });
-
-  ipcMain.handle('restoreWindow', (event): boolean => {
-    try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
-
-      senderProcess.unmaximize();
-
-      return senderProcess.isMaximized();
-    } catch (exception) {
-      throw new Error(`Failed to restore a window: ${(exception as Error).message}`, {
-        cause: exception
-      });
-    }
-  });
-
-  ipcMain.handle('closeWindow', (event): boolean => {
-    try {
-      const senderProcess = getBrowserWindowByProcessWebContents(event.sender);
-
-      if (senderProcess.closable) {
-        senderProcess.close();
-      }
-
-      return senderProcess.isDestroyed();
-    } catch (exception) {
-      throw new Error(`Failed to close a window: ${(exception as Error).message}`, {
-        cause: exception
-      });
-    }
-  });
 
   // LOGGING
   ipcMain.on(

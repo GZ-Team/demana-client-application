@@ -53,4 +53,5 @@ $ pnpm build:linux
   - [web-installer](https://www.electron.build/configuration/nsis.html#web-installer)
   - [custom-nsis-script](https://www.electron.build/configuration/nsis.html#custom-nsis-script)
 - [Custom application frame](https://www.electronjs.org/docs/latest/tutorial/window-customization#create-frameless-windows)
+  - Branch: feature/custom-app-frame
 - [Online/Offline Event Detection](https://www.electronjs.org/docs/latest/tutorial/online-offline-events)

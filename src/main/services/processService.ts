@@ -1,10 +1,8 @@
 import { BrowserWindow, shell } from 'electron';
 import { join } from 'path';
 
-import { pushEventToProcess } from '../utils/eventUtils';
-
 import type { NativeImage, BrowserWindowConstructorOptions } from 'electron';
-import type { DemanaProcessType, DemanaWindowState } from 'types';
+import type { DemanaProcessType } from 'types';
 
 export enum DemanaPreloadScriptPath {
   WORKER = '../preload/worker.js',
@@ -40,32 +38,6 @@ export default class ProcessService {
     };
   }
 
-  private getWindowState(process: BrowserWindow): DemanaWindowState {
-    try {
-      if (process.isDestroyed()) {
-        return {
-          isMinimized: false,
-          isMaximized: false,
-          isClosable: false,
-          minimizable: false,
-          maximizable: false
-        };
-      }
-
-      return {
-        isMinimized: process.isMinimized(),
-        isMaximized: process.isMaximized(),
-        isClosable: process.isClosable(),
-        minimizable: process.minimizable,
-        maximizable: process.maximizable
-      };
-    } catch (exception) {
-      throw new Error(`Failed to get the state of a window: ${(exception as Error).message}`, {
-        cause: exception
-      });
-    }
-  }
-
   private createUiProcess(options: DemanaProcessOptions): BrowserWindow {
     try {
       const { mode, window, events } = options;
@@ -80,7 +52,6 @@ export default class ProcessService {
         autoHideMenuBar: !isDev,
         title: window.title,
         icon: window.icon,
-        frame: isDev,
         webPreferences: {
           ...this.commonProcessProperties.webPreferences,
           preload: join(__dirname, window.preload),
@@ -89,11 +60,6 @@ export default class ProcessService {
       });
 
       uiProcess.on('ready-to-show', () => {
-        pushEventToProcess(
-          { name: '@window:new', value: this.getWindowState(uiProcess) },
-          uiProcess
-        );
-
         uiProcess.show();
       });
 
