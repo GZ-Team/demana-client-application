@@ -11,7 +11,7 @@ export enum DemanaPreloadScriptPath {
 }
 
 type DemanaWindowOptions = {
-  title?: string;
+  title: string;
   icon?: NativeImage;
   content: string;
   preload: DemanaPreloadScriptPath;

@@ -51,6 +51,7 @@ function getOrCreateMainUiProcess(): BrowserWindow {
   if (!mainUiProcess || mainUiProcess.isDestroyed()) {
     mainUiProcess = processService.createProcess('ui', {
       window: {
+        title: 'Main UI',
         icon,
         content: join(__dirname, '../renderer/ui/index.html'),
         preload: DemanaPreloadScriptPath.UI
@@ -267,6 +268,7 @@ app.whenReady().then(async () => {
   mainWorkerProcess = processService.createProcess('worker', {
     mode: runtimeConfigService.isDev ? 'development' : 'production',
     window: {
+      title: 'Main worker',
       content: join(__dirname, '../renderer/worker/index.html'),
       icon,
       preload: DemanaPreloadScriptPath.WORKER
