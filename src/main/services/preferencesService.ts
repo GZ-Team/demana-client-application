@@ -1,8 +1,9 @@
 import StorageService from './storageService';
 
-import type { DemanaPreferences, Optional } from 'types';
+import type { DemanaPreferences, Optional } from '@root/types';
+import type { DemanaService } from '../types';
 
-export default class PreferencesServices extends StorageService {
+export default class PreferencesServices extends StorageService implements DemanaService {
   constructor() {
     super('userData', 'configuration.json');
   }

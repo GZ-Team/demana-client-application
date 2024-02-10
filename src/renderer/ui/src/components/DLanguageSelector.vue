@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import useTranslations from '../composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations';
 
-import { getFlagIconForLocaleTag } from '../assets/icons';
+import { getFlagIconForLocaleTag } from '@ui/assets/icons';
 
-import type { DemanaLocaleCode } from '../../../../types';
+import type { DemanaLocaleCode } from '@root/types';
 
 const { locale, availableLocaleCodes, translate, setLocale } = useTranslations('globals.languages');
 
@@ -29,7 +29,7 @@ const selectedLanguage = computed<DemanaLocaleCode>({
 const languageOptions = computed(() =>
   availableLocaleCodes.value
     .map((localeCode) => {
-      const localeOption: { key: DemanaLocaleCode; label?: string; icon: string } = {
+      const localeOption: { key: DemanaLocaleCode; label?: string; icon?: string } = {
         key: localeCode,
         icon: (getFlagIconForLocaleTag(localeCode) || {}).name
       };

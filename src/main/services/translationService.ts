@@ -7,8 +7,9 @@ import type {
   DemanaLocaleTranslation,
   DemanaLocaleTranslationDto
 } from '../../types';
+import type { DemanaService } from '../types';
 
-export default class TranslationService extends PreferencesService {
+export default class TranslationService extends PreferencesService implements DemanaService {
   private get locale(): DemanaLocaleCode {
     return super.preferences.language as DemanaLocaleCode;
   }

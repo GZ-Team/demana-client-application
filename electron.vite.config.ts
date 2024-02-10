@@ -2,11 +2,12 @@ import { resolve } from 'path';
 import { defineConfig, externalizeDepsPlugin, bytecodePlugin } from 'electron-vite';
 import vue from '@vitejs/plugin-vue';
 import vuetify from 'vite-plugin-vuetify';
+import graphqlLoader from 'vite-plugin-graphql-loader';
+import codegen from 'vite-plugin-graphql-codegen';
 
 export default defineConfig({
   main: {
-    envPrefix: 'V_DEMANA_',
-    plugins: [externalizeDepsPlugin(), bytecodePlugin()]
+    plugins: [externalizeDepsPlugin(), bytecodePlugin(), graphqlLoader(), codegen()]
   },
   preload: {
     build: {
@@ -47,7 +48,8 @@ export default defineConfig({
       vue(),
       // https://www.npmjs.com/package/vite-plugin-vuetify
       vuetify({ autoImport: true }),
-      bytecodePlugin()
+      bytecodePlugin(),
+      graphqlLoader()
     ]
   }
 });

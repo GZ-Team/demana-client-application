@@ -1,3 +1,5 @@
+import login from './login';
+
 export default {
   printerConfiguration: {
     title: 'Ajustes de impresora',
@@ -14,6 +16,6 @@ export default {
   preferences: {
     title: 'Preferencias',
     applicationLanguage: 'Idioma'
-  }
-}
-
+  },
+  login
+};

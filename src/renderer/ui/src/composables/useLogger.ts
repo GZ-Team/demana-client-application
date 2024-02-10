@@ -1,6 +1,6 @@
-import { useAppStore } from '../stores/appStore';
+import { useAppStore } from '@ui/stores/appStore';
 
-import type { DemanaLogLevel, DemanaLogger } from 'types';
+import type { DemanaLogLevel, DemanaLogger } from '@root/types';
 
 export default function useLogger({ service }: { service: string }): DemanaLogger {
   const { logMessage } = useAppStore();

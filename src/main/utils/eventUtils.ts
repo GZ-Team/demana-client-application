@@ -1,5 +1,5 @@
 import type { BrowserWindow } from 'electron';
-import type { DemanaEvent } from 'types';
+import type { DemanaEvent } from '@root/types';
 
 export function pushEventToProcess<T>(event: DemanaEvent<T>, process: BrowserWindow): void {
   try {

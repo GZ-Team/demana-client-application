@@ -3,3 +3,15 @@
 @import './variables';
 @import './typography.scss';
 @import './utils.scss';
+
+body {
+	background-color: $demana-background-color;
+}
+
+.grecaptcha-badge {
+	display: none;
+}
+
+.mooned {
+	border-radius: 0 0 2.5rem 2.5rem;
+}

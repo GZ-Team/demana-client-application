@@ -1,4 +1,4 @@
-import { usePrinterStore } from '../stores/printerStore';
+import { usePrinterStore } from '@ui/stores/printerStore';
 
 import type { App, Plugin } from 'vue';
 

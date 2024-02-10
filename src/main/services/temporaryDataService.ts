@@ -1,8 +1,9 @@
-import { DemanaTemporaryData, Optional } from 'types';
-
 import StorageService from './storageService';
 
-export default class TemporaryDataService extends StorageService {
+import type { DemanaTemporaryData, Optional } from '@root/types';
+import type { DemanaService } from '../types';
+
+export default class TemporaryDataService extends StorageService implements DemanaService {
   constructor() {
     super('temp', 'temp.json');
   }

@@ -2,7 +2,7 @@ import en from './en';
 import ca from './ca';
 import es from './es';
 
-import type { DemanaLocaleCode, DemanaLocaleTranslation } from 'types';
+import type { DemanaLocaleCode, DemanaLocaleTranslation } from '@root/types';
 
 const localeTranslations = {
   en,

@@ -4,7 +4,7 @@ import WinstonDailyRotateFile from 'winston-daily-rotate-file';
 import { resolveAppFilePath } from './fileUtils';
 
 import type { Logger } from 'winston';
-import type { DemanaLogLevel } from 'types';
+import type { DemanaLogLevel } from '@root/types';
 
 const { combine, splat, timestamp, simple, label, colorize, json, printf, prettyPrint } = format;
 

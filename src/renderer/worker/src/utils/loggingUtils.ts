@@ -1,4 +1,4 @@
-import type { DemanaLogLevel, DemanaLogger } from 'types';
+import type { DemanaLogLevel, DemanaLogger } from '@root/types';
 
 export default function useLogger({ service }: { service: string }): DemanaLogger {
   function log(level: DemanaLogLevel, message: string, ...meta: unknown[]): void {

@@ -1,6 +1,7 @@
 import { Tray, Menu } from 'electron';
 
 import type { NativeImage, MenuItemConstructorOptions, MenuItem } from 'electron';
+import type { DemanaService } from '../types';
 
 export type TrayServiceOptions = {
   icon: NativeImage;
@@ -8,7 +9,7 @@ export type TrayServiceOptions = {
   contextMenuContent?: (MenuItemConstructorOptions | MenuItem)[];
 };
 
-export default class TrayService {
+export default class TrayService implements DemanaService {
   private icon: NativeImage;
   private contextToolTip: string;
   private contextMenuContent: (MenuItemConstructorOptions | MenuItem)[];

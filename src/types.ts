@@ -1,3 +1,5 @@
+import type { CookiesGetFilter, CookiesSetDetails } from 'electron';
+
 class Device {
   readonly deviceId: string;
   readonly name: string;
@@ -95,8 +97,13 @@ export type DemanaApiEndPoint = 'setSelectedPrinter' | 'getLocaleTranslations';
 type DemanaOrderEventName = '@orders:new';
 type DemanaMessageEventName = '@messages:new';
 type DemanaWindowEventName = '@window:new' | '@window:external-navigation';
+type DemanaSessionEventName = '@session:authenticated';
 
-export type DemanaEventName = DemanaOrderEventName | DemanaMessageEventName | DemanaWindowEventName;
+export type DemanaEventName =
+  | DemanaOrderEventName
+  | DemanaMessageEventName
+  | DemanaWindowEventName
+  | DemanaSessionEventName;
 
 export type DemanaEvent<T> = {
   name: DemanaEventName;
@@ -159,3 +166,16 @@ export interface DemanaLogger {
   info: (message: string, ...meta: unknown[]) => void;
   debug: (message: string, ...meta: unknown[]) => void;
 }
+
+export type DemanaRequestHeaders = {
+  authorization?: string;
+  'refresh-token'?: string;
+};
+
+export type Paths<T> = T extends object
+  ? {
+      [K in keyof T]: `${Exclude<K, symbol>}${'' | `.${Paths<T[K]>}`}`;
+    }[keyof T]
+  : never;
+
+export type DemanaCookieDetails = Optional<CookiesGetFilter & CookiesSetDetails, 'url'>;

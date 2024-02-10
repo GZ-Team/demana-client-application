@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 
-import useTranslations from '../composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations';
 
-import DLanguageSelector from '../components/DLanguageSelector.vue';
+import DLanguageSelector from '@ui/components/DLanguageSelector.vue';
 
 const { translate } = useTranslations('pages.preferences');
 const {

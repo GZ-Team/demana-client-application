@@ -1,0 +1,41 @@
+fragment Venue on VenueDto {
+  id
+  name
+  description
+  locale
+  location {
+    street
+    number
+    postalCode
+    city
+    region
+    country
+  }
+  owner {
+    id
+    firstName
+    lastName
+  }
+  isDemo
+  phoneNumber
+  emailAddress
+  website
+  socialMedia {
+    id
+    url
+    type
+  }
+  configuration {
+    venuePrinterConfiguration {
+      id
+      printerName
+      printerConnectionUrl
+      automatic
+      paperWidth
+      paperMargin
+    }
+  }
+  enabled
+  paused
+  logoId
+}

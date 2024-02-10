@@ -4,11 +4,9 @@ import { storeToRefs } from 'pinia';
 import { useVuelidate } from '@vuelidate/core';
 import { required, between } from '@vuelidate/validators';
 
-import { usePrinterStore } from '../stores/printerStore';
+import { usePrinterStore } from '@ui/stores/printerStore';
 
-import useTranslations from '../composables/useTranslations';
-
-import type { DemanaPrintingConfiguration } from '../../../../types';
+import useTranslations from '@ui/composables/useTranslations';
 
 const printerStore = usePrinterStore();
 const { usbPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore);
@@ -26,7 +24,11 @@ const inputLimits = {
 
 const localSelectedPrinterId = ref<string | null>(null);
 
-const localPrinterConfiguration = reactive<DemanaPrintingConfiguration>({
+const localPrinterConfiguration = reactive<{
+  automatic: boolean | null;
+  paperWidth: number | null;
+  paperMargin: number | null;
+}>({
   automatic: null,
   paperWidth: null,
   paperMargin: null
@@ -155,11 +157,11 @@ async function handleSavePrintingConfiguration() {
 
   if (isValid) {
     await Promise.all([
-      updateSelectedPrinterId(selectedPrinter.value.productId),
+      updateSelectedPrinterId(selectedPrinter.value?.productId),
       updatePrintingConfiguration({
-        automatic: computedAutomaticPrinting,
-        paperWidth: computedPaperWidth,
-        paperMargin: computedPaperMargin
+        automatic: computedAutomaticPrinting.value,
+        paperWidth: computedPaperWidth.value,
+        paperMargin: computedPaperMargin.value
       })
     ]);
 

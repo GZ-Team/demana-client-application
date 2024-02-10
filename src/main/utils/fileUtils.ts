@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 
 import { isLocal } from './environmentUtils';
 
-import type { StorageKey } from 'types';
+import type { StorageKey } from '@root/types';
 
 export function resolveAppFilePath(storageKey: StorageKey, ...pathPartials: string[]): string {
   return isLocal()

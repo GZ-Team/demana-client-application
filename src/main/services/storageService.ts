@@ -3,7 +3,8 @@ import { cloneDeep, isNil } from '../utils/sharedUtils';
 import useLogger from '../utils/loggerUtils';
 
 import type { Logger } from 'winston';
-import type { StorageKey } from 'types';
+import type { StorageKey } from '@root/types';
+import type { DemanaService } from '../types';
 
 type UserDataStorageFileNames = 'configuration.json';
 type TempStorageFileNames = 'temp.json';
@@ -15,7 +16,7 @@ type TempStorageDataKeys = 'currentRouteName';
 
 type StorageDataKeys = UserDataStorageDataKeys | TempStorageDataKeys;
 
-export default class StorageService {
+export default class StorageService implements DemanaService {
   private logger: Logger = useLogger({ service: 'StorageService' }).logger;
 
   private storageKey: StorageKey;

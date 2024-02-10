@@ -2,7 +2,7 @@
 import { computed, useAttrs } from 'vue';
 import { VIcon, VAvatar } from 'vuetify/lib/components/index.mjs';
 
-import { icons } from '../../assets/icons';
+import { icons } from '@ui/assets/icons';
 
 const props = defineProps({
   name: { type: String, required: true },

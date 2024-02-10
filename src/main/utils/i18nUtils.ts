@@ -1,6 +1,6 @@
 import { availableLocaleCodes } from '../locales';
 
-import type { DemanaLocaleCode } from 'types';
+import type { DemanaLocaleCode } from '@root/types';
 
 export function parseLocale(
   value: string,

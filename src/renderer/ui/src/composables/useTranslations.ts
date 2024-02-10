@@ -3,21 +3,21 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { createI18nMessage } from '@vuelidate/validators';
 
-import { useAppStore } from '../stores/appStore';
+import { useAppStore } from '@ui/stores/appStore';
 
 import type { ValidationRule } from '@vuelidate/core';
-import type { DemanaLocaleCode } from 'types';
+import type { DemanaLocaleCode } from '@root/types';
 
 export default function (scope?: string) {
   const appStore = useAppStore();
 
   const { t, locale, fallbackLocale, setLocaleMessage } = useI18n({ useScope: 'global' });
-  const { availableLocaleCodes, prefferedLocaleCode } = storeToRefs(appStore);
+  const { availableLocaleCodes, preferredLocaleCode } = storeToRefs(appStore);
 
   const { loadAllTranslations, updatePreferences } = appStore;
 
   function translate(key: string, context: Record<string, unknown> = {}): string {
-    return t([scope, key].join('.'), context);
+    return t([scope, key].filter(scopeStep => scopeStep).join('.'), context);
   }
 
   function createTranslatedValidator(validator: ValidationRule): ValidationRule {
@@ -41,8 +41,8 @@ export default function (scope?: string) {
       setLocaleMessage(localeCode, localeTranslations)
     );
 
-    locale.value = prefferedLocaleCode.value;
-    fallbackLocale.value = prefferedLocaleCode.value;
+    locale.value = preferredLocaleCode.value;
+    fallbackLocale.value = preferredLocaleCode.value;
   }
 
   async function setLocale(newLocaleCode: DemanaLocaleCode): Promise<void> {

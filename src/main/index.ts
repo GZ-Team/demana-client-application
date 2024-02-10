@@ -3,6 +3,7 @@ import { join } from 'path';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 
+import ContextService from './services/contextService';
 import RuntimeConfigService from './services/runtimeConfigService';
 import PreferencesService from './services/preferencesService';
 import TemporaryDataService from './services/temporaryDataService';
@@ -15,6 +16,8 @@ import ProcessService, { DemanaPreloadScriptPath } from './services/processServi
 
 import { pushEventToProcess } from './utils/eventUtils';
 import { parseLocale } from './utils/i18nUtils';
+import useLogger from './utils/loggerUtils';
+import { openExternalLink } from './utils/externalUtils';
 
 import type {
   DemanaLocaleCode,
@@ -24,30 +27,26 @@ import type {
   DemanaPrintingConfiguration,
   DemanaTemporaryDataDto,
   Optional
-} from './../types';
+} from '../types';
 
 import demanaLogo from '../../resources/demana.png';
-
-import useLogger from './utils/loggerUtils';
 
 const { logger } = useLogger();
 
 let isApplicationBeingClosed = false;
 const icon = nativeImage.createFromDataURL(demanaLogo);
 
-let sessionService: SessionService;
-const runtimeConfigService = new RuntimeConfigService();
-const preferenceService = new PreferencesService();
-const temporaryDataService = new TemporaryDataService();
-const translationService = new TranslationService();
-const printerService = new PrinterService();
-const notificationService = new NotificationService(icon);
-const processService = new ProcessService();
+const context: ContextService = ContextService.instance;
 
 let mainWorkerProcess: BrowserWindow;
 let mainUiProcess: BrowserWindow;
 
 function getOrCreateMainUiProcess(): BrowserWindow {
+  const processService = context.getServiceByName<ProcessService>('process');
+  const runtimeConfigService = context.getServiceByName<RuntimeConfigService>('runtimeConfig');
+  const notificationService = context.getServiceByName<NotificationService>('notification');
+  const translationService = context.getServiceByName<TranslationService>('translation');
+
   if (!mainUiProcess || mainUiProcess.isDestroyed()) {
     mainUiProcess = processService.createProcess('ui', {
       window: {
@@ -99,21 +98,22 @@ function initializeIpcHandlers(): void {
 
   // PRINTING
   ipcMain.handle('getSelectedPrinter', (_event): string => {
-    return printerService.selectedPrinterId;
+    return context.getServiceByName<PrinterService>('printer').selectedPrinterId;
   });
 
   ipcMain.on('setSelectedPrinter', (_event, printerId: string): void => {
-    printerService.selectedPrinterId = printerId;
+    context.getServiceByName<PrinterService>('printer').selectedPrinterId = printerId;
   });
 
   ipcMain.handle('getPrintingConfiguration', (_event): DemanaPrintingConfiguration => {
-    return printerService.printingConfiguration;
+    return context.getServiceByName<PrinterService>('printer').printingConfiguration;
   });
 
   ipcMain.on(
     'setPrintingConfiguration',
     (_event, printingConfiguration: DemanaPrintingConfiguration): void => {
-      printerService.printingConfiguration = printingConfiguration;
+      context.getServiceByName<PrinterService>('printer').printingConfiguration =
+        printingConfiguration;
     }
   );
 
@@ -121,24 +121,20 @@ function initializeIpcHandlers(): void {
   ipcMain.on(
     'setPreferences',
     (_event, preferencesUpdate: Optional<DemanaPreferences, 'language'>) => {
-      preferenceService.preferences = preferencesUpdate;
+      context.getServiceByName<PreferencesService>('preferences').preferences = preferencesUpdate;
     }
   );
 
   ipcMain.handle('getPreferences', (_event): DemanaPreferences => {
-    return preferenceService.preferences;
-  });
-
-  // RUNTIME CONFIGURATION
-  ipcMain.handle('getRuntimeConfiguration', (_event): Record<string, unknown> => {
-    return runtimeConfigService.publicRuntimeConfig;
+    return context.getServiceByName<PreferencesService>('preferences').preferences;
   });
 
   // TEMPORARY DATA
   ipcMain.handle(
     'getTemporaryData',
     (_event): Optional<DemanaTemporaryDataDto, 'redirectionRoute'> => {
-      const { currentRouteName } = temporaryDataService.data;
+      const { currentRouteName } =
+        context.getServiceByName<TemporaryDataService>('temporaryData').data;
 
       return {
         redirectionRoute: currentRouteName
@@ -151,7 +147,7 @@ function initializeIpcHandlers(): void {
     (_event, { key, value }: { key: keyof DemanaTemporaryDataDto; value: string | null }): void => {
       switch (key) {
         case 'redirectionRoute':
-          temporaryDataService.currentRouteName = value;
+          context.getServiceByName<TemporaryDataService>('temporaryData').currentRouteName = value;
           break;
       }
     }
@@ -159,15 +155,21 @@ function initializeIpcHandlers(): void {
 
   // I18N
   ipcMain.handle('getAvailableLocaleCodes', (_event): DemanaLocaleCode[] => {
-    return translationService.availableLocaleCodes;
+    return context.getServiceByName<TranslationService>('translation').availableLocaleCodes;
   });
 
   ipcMain.handle(
     'getAllTranslations',
     (_event): Record<DemanaLocaleCode, DemanaLocaleTranslation> => {
-      return translationService.allTranslations;
+      return context.getServiceByName<TranslationService>('translation').allTranslations;
     }
   );
+
+  // APP BEHAVIOUR
+  ipcMain.on('openExternalLink', async (_event, link: string): Promise<void> => {
+    logger.info(`Opening an external link: ${link}`);
+    await openExternalLink(link);
+  });
 
   // LOGGING
   ipcMain.on(
@@ -184,54 +186,78 @@ function initializeIpcHandlers(): void {
       useLogger({ service, isMainProcess: false }).logger.log(level, message, meta);
     }
   );
+
+  // AUTHENTICATION
+  ipcMain.handle('refresh', async (): Promise<void> => {
+    await context.getServiceByName<SessionService>('session').refreshAuthenticationSession();
+  });
+
+  ipcMain.handle('logout', async (): Promise<void> => {
+    await context.getServiceByName<SessionService>('session').endAuthenticatedSession();
+  });
 }
 
 function initializeServices(): void {
-  preferenceService.setDefaultValues({ language: parseLocale(app.getLocale()) });
-  temporaryDataService.setDefaultValues();
-  printerService.setDefaultValues();
+  context
+    .registerService('preferences', new PreferencesService())
+    .setDefaultValues({ language: parseLocale(app.getLocale()) });
 
-  new TrayService({
-    icon,
-    contextMenuContent: [
-      {
-        label: translationService.translate('globals.applicationName'),
-        enabled: false
-      },
-      {
-        type: 'separator'
-      },
-      {
-        label: translationService.translate('tray.links.preferences'),
-        click: () => showMainUiProcess('Preferences'),
-        type: 'normal'
-      },
-      {
-        type: 'separator'
-      },
-      {
-        label: translationService.translate('tray.actions.open'),
-        type: 'normal',
-        click: () => showMainUiProcess()
-      },
-      {
-        label: translationService.translate('tray.actions.exit'),
-        type: 'normal',
-        click: () => beforeApplicationExit(),
-        role: 'quit'
-      }
-    ]
-  })
+  context.registerService('temporaryData', new TemporaryDataService()).setDefaultValues();
+
+  context.registerService('printer', new PrinterService()).setDefaultValues();
+
+  context.registerServices({
+    session: new SessionService(mainUiProcess.id, mainWorkerProcess.id)
+  });
+
+  const translationService = context.getServiceByName<TranslationService>('translation');
+
+  context
+    .registerService(
+      'tray',
+      new TrayService({
+        icon,
+        contextMenuContent: [
+          {
+            label: translationService.translate('globals.applicationName'),
+            enabled: false
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: translationService.translate('tray.links.preferences'),
+            click: () => showMainUiProcess('Preferences'),
+            type: 'normal'
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: translationService.translate('tray.actions.open'),
+            type: 'normal',
+            click: () => showMainUiProcess()
+          },
+          {
+            label: translationService.translate('tray.actions.exit'),
+            type: 'normal',
+            click: () => beforeApplicationExit(),
+            role: 'quit'
+          }
+        ]
+      })
+    )
     .buildTrayContextMenu()
     .on('click', () => showMainUiProcess());
 }
 
 function showMainUiProcess(routeName?: string): void {
   const mainUiProcess = getOrCreateMainUiProcess();
-  sessionService = new SessionService(mainUiProcess.id);
+
+  context.getServiceByName<SessionService>('session').uiProcess = mainUiProcess;
 
   if (routeName) {
-    temporaryDataService.currentRouteName = routeName;
+    context.getServiceByName<TemporaryDataService>('temporaryData').currentRouteName = routeName;
   }
 
   if (!mainUiProcess.isVisible()) {
@@ -255,6 +281,11 @@ function beforeApplicationExit(): void {
  * Some APIs can only be used after this event occurs.
  */
 app.whenReady().then(async () => {
+  const processService = context.registerService('process', new ProcessService());
+  const runtimeConfigService = context.registerService('runtimeConfig', new RuntimeConfigService());
+  const translationService = context.registerService('translation', new TranslationService());
+  context.registerService('notification', new NotificationService(icon));
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('digital.demana');
 
@@ -283,16 +314,16 @@ app.whenReady().then(async () => {
 
   mainUiProcess = getOrCreateMainUiProcess();
 
-  initializeIpcHandlers();
   initializeServices();
+
+  initializeIpcHandlers();
 
   mainUiProcess.setTitle(translationService.translate('globals.applicationName'));
 
-  // TO-DO: remove after development
-  setInterval(
-    () => pushEventToProcess({ name: '@orders:new', value: 'test' }, mainWorkerProcess),
-    10 * 1000
-  );
+  // setInterval(
+  //   () => pushEventToProcess({ name: '@orders:new', value: 'test' }, mainWorkerProcess),
+  //   10 * 1000
+  // );
 
   if (runtimeConfigService.isDev) {
     try {

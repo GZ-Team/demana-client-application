@@ -1,31 +1,66 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-import DefaultLayout from '../layouts/default.vue';
+import DefaultLayout from '@ui/layouts/default.vue';
+import UnauthenticatedLayout from '@ui/layouts/unauthenticated.vue';
 
-import PrinterConfigurationPage from '../pages/printerConfiguration.vue';
-import PreferencesPage from '../pages/preferences.vue';
+import PrinterConfigurationPage from '@ui/pages/configuration/printer.vue';
+import PreferencesPage from '@ui/pages/preferences.vue';
 
-// PAGES
-const printerConfigurationPageRoute: RouteRecordRaw = {
-  path: '',
-  name: 'PrinterConfiguration',
-  component: PrinterConfigurationPage
+import LoginPage from '@ui/pages/login.vue';
+
+type DemanaRouteMetaOptions = {
+  $public?: boolean;
 };
 
-const preferencesPageRoute: RouteRecordRaw = {
+function createPageRoute(options: RouteRecordRaw, meta?: DemanaRouteMetaOptions): RouteRecordRaw {
+  return { ...options, meta };
+}
+
+function createPublicPageRoute(options: RouteRecordRaw): RouteRecordRaw {
+  return createPageRoute(options, { $public: true });
+}
+
+// PUBLIC PAGES
+export const loginPageRoute: RouteRecordRaw = createPublicPageRoute({
+  path: 'login',
+  name: 'Login',
+  component: LoginPage
+});
+
+const preferencesPageRoute: RouteRecordRaw = createPublicPageRoute({
   path: 'preferences',
   name: 'Preferences',
   component: PreferencesPage
-};
+});
+
+// AUTHENTICATED PAGES: CONFIGURATION
+const printerConfigurationPageRoute: RouteRecordRaw = createPageRoute({
+  path: 'printer',
+  name: 'PrinterConfiguration',
+  component: PrinterConfigurationPage
+});
+
+export const configurationPageRoute: RouteRecordRaw = createPageRoute({
+  path: '',
+  name: 'Configuration',
+  redirect: {name: 'PrinterConfiguration'},
+  children: [printerConfigurationPageRoute]
+});
 
 // LAYOUTS
-const defaultLayoutRoute: RouteRecordRaw = {
-  path: '',
-  component: DefaultLayout,
+const unauthenticatedLayoutRoute: RouteRecordRaw = createPublicPageRoute({
+  path: '/',
+  component: UnauthenticatedLayout,
   alias: ['/ui/index.html'],
-  children: [printerConfigurationPageRoute, preferencesPageRoute]
-};
+  children: [loginPageRoute, preferencesPageRoute]
+});
 
-export default [defaultLayoutRoute] as RouteRecordRaw[];
+const defaultLayoutRoute: RouteRecordRaw = createPageRoute({
+  path: '/configuration',
+  component: DefaultLayout,
+  children: [configurationPageRoute]
+});
 
-export const DEFAULT_ROUTE: RouteRecordRaw = printerConfigurationPageRoute;
+export const DEFAULT_ROUTE: RouteRecordRaw = configurationPageRoute;
+
+export default [unauthenticatedLayoutRoute, defaultLayoutRoute] as RouteRecordRaw[];

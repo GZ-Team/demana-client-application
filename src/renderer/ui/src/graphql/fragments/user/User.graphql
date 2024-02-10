@@ -1,0 +1,32 @@
+#import "../venue/Venue.graphql"
+
+fragment User on UserDto {
+	id
+	stripeId
+	venue {
+		...Venue
+	}
+	email
+	registrationDate
+	lastLoginDate
+	firstName
+	lastName
+	dateOfBirth
+	paymentMethod {
+		id
+		card {
+			brand
+			country
+			expirationMonth
+			expirationYear
+			issuer
+			last4Digits
+		}
+	}
+	roles {
+		name
+	}
+	preferences {
+		language
+	}
+}

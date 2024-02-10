@@ -1,6 +1,9 @@
 /// <reference types="vite/client" />
+import 'vue-router';
 
 import type { DemanaUiProcessPreloadApi } from '../../../preload/uiPreload';
+
+export {};
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue';
@@ -21,4 +24,10 @@ declare module '*.svg' {
   const filePath: string;
 
   export default filePath;
+}
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    $public?: boolean;
+  }
 }

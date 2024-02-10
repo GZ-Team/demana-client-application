@@ -1,4 +1,7 @@
-import { NativeImage, Notification } from 'electron';
+import { Notification } from 'electron';
+
+import type { NativeImage } from 'electron';
+import type { DemanaService } from '../types';
 
 export type DemanaNotificationOptions = {
   title: string;
@@ -6,7 +9,7 @@ export type DemanaNotificationOptions = {
   icon?: NativeImage;
 };
 
-export default class NotificationService {
+export default class NotificationService implements DemanaService {
   private defaultIcon: string;
 
   constructor(defaultIcon: NativeImage) {

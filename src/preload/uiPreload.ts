@@ -3,7 +3,7 @@ import { ipcRenderer } from 'electron';
 import { sharedPreloadApi, attachApisToProcess } from './sharedPreload';
 
 import type { DemanaSharedPreloadApi } from './sharedPreload';
-import type { DemanaPreferences, DemanaPrintingConfiguration, Optional } from 'types';
+import type { DemanaPreferences, DemanaPrintingConfiguration, Optional } from '@root/types';
 
 export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   // PRINTING
@@ -12,7 +12,10 @@ export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   // PREFERENCES
   setPreferences: (preferencesUpdate: Optional<DemanaPreferences, 'language'>) => void;
   // APP BEHAVIOUR
-  '@window:external-navigation': (callback: (routeName: string) => {}) => void;
+  '@window:external-navigation': (callback: (routeName: string) => void) => void;
+  // AUTHENTICATION
+  refresh: () => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const uiPreloadApi: DemanaUiProcessPreloadApi = {
@@ -27,7 +30,10 @@ const uiPreloadApi: DemanaUiProcessPreloadApi = {
   '@window:external-navigation': (callback) =>
     ipcRenderer.on('@window:external-navigation', (_event, routeName: string) =>
       callback(routeName)
-    )
+    ),
+  // AUTHENTICATION
+  refresh: async () => await ipcRenderer.invoke('refresh'),
+  logout: async () => await ipcRenderer.invoke('logout')
 };
 
 attachApisToProcess({ api: uiPreloadApi });

@@ -2,7 +2,8 @@ import { BrowserWindow, shell } from 'electron';
 import { join } from 'path';
 
 import type { NativeImage, BrowserWindowConstructorOptions } from 'electron';
-import type { DemanaProcessType } from 'types';
+import type { DemanaProcessType } from '@root/types';
+import type { DemanaService } from '../types';
 
 export enum DemanaPreloadScriptPath {
   WORKER = '../preload/worker.js',
@@ -24,10 +25,10 @@ type DemanaProcessEventName = 'close';
 type DemanaProcessOptions = {
   window: DemanaWindowOptions;
   mode?: DemanaProcessMode;
-  events?: Record<DemanaProcessEventName, Function>;
+  events?: Record<DemanaProcessEventName, () => void>;
 };
 
-export default class ProcessService {
+export default class ProcessService implements DemanaService {
   private get commonProcessProperties(): BrowserWindowConstructorOptions {
     return {
       show: false,
@@ -70,6 +71,7 @@ export default class ProcessService {
             switch (eventName) {
               case 'close':
                 uiProcess.on('close', eventCallback);
+
                 break;
             }
           });

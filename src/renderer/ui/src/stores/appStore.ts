@@ -7,7 +7,7 @@ import type {
   DemanaPreferences,
   DemanaTemporaryDataDto,
   Optional
-} from 'types';
+} from '@root/types';
 
 type AppStoreState = {
   preferences: {
@@ -17,7 +17,6 @@ type AppStoreState = {
     allTranslations: Record<DemanaLocaleCode, DemanaLocaleTranslation> | null;
     availableLocaleCodes: DemanaLocaleCode[] | null;
   };
-  runtimeConfiguration: Record<string, unknown>;
 };
 
 export const useAppStore = defineStore('appStore', {
@@ -28,23 +27,21 @@ export const useAppStore = defineStore('appStore', {
     i18n: {
       allTranslations: null,
       availableLocaleCodes: null
-    },
-    runtimeConfiguration: {}
+    }
   }),
 
   getters: {
     allTranslations: ({ i18n }): Record<DemanaLocaleCode, DemanaLocaleTranslation> =>
       i18n.allTranslations ?? ({} as Record<DemanaLocaleCode, DemanaLocaleTranslation>),
     availableLocaleCodes: ({ i18n }): DemanaLocaleCode[] => i18n.availableLocaleCodes ?? [],
-    prefferedLocaleCode: ({ preferences }): DemanaLocaleCode => preferences.language ?? 'en'
+    preferredLocaleCode: ({ preferences }): DemanaLocaleCode => preferences.language ?? 'en',
+    runtimeConfiguration: () => import.meta.env
   },
 
   actions: {
     async loadPreferences(): Promise<DemanaPreferences> {
       try {
-        const preferences = await window.api.getPreferences();
-
-        this.preferences = preferences;
+        this.preferences = await window.api.getPreferences();
 
         return this.preferences as DemanaPreferences;
       } catch (exception) {
@@ -58,16 +55,6 @@ export const useAppStore = defineStore('appStore', {
         return await window.api.getTemporaryData();
       } catch (exception) {
         throw new Error(`Failed to load temporary data: ${(exception as Error).message}`, {
-          cause: exception
-        });
-      }
-    },
-    async loadRuntimeConfiguration(): Promise<Record<string, unknown>> {
-      try {
-        this.runtimeConfiguration = await window.api.getRuntimeConfiguration();
-        return this.runtimeConfiguration;
-      } catch (exception) {
-        throw new Error(`Failed to load runtime configuration: ${(exception as Error).message}`, {
           cause: exception
         });
       }
@@ -113,6 +100,30 @@ export const useAppStore = defineStore('appStore', {
           `Failed to load all available locale codes: ${(exception as Error).message}`,
           { cause: exception }
         );
+      }
+    },
+    async openExternalLink(link: string): Promise<void> {
+      try {
+        await window.api.openExternalLink(link);
+      } catch (exception) {
+        throw new Error(`Failed to open an external link: ${(exception as Error).message}`, {
+          cause: exception
+        });
+      }
+    },
+    createBackofficeLink(link: string): string {
+      try {
+        const { RENDERER_VITE_BACK_OFFICE_URL } = import.meta.env;
+
+        if (!RENDERER_VITE_BACK_OFFICE_URL) {
+          throw new Error('the backoffice url is null.');
+        }
+
+        return [RENDERER_VITE_BACK_OFFICE_URL, link].join('/');
+      } catch (exception) {
+        throw new Error(`Failed to create a backoffice url: ${(exception as Error).message}`, {
+          cause: exception
+        });
       }
     },
     logMessage(

@@ -1,0 +1,14 @@
+mutation desktopLogin($loginForm: LoginForm!) {
+	desktopLogin(loginForm: $loginForm) {
+		success
+		message
+		token {
+			value
+			expirationDate
+		}
+		refreshToken {
+			value
+			expirationDate
+		}
+	}
+}

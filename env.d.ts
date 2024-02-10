@@ -2,23 +2,25 @@
 
 /**
  * Type for all imported environment variables.
+ * https://electron-vite.org/guide/env-and-mode#global-env-variables
+ *
  * Prefixes:
- * - V_DEMANA_: all processes
- * - MAIN_V_DEMANA_: main process
- * - PRELOAD_V_DEMANA_: preload process
- * - RENDERER_V_DEMANA: renderer process
+ * - MAIN_VITE_: main process
+ * - PRELOAD_VITE_: preload process
+ * - RENDERER_VITE_: renderer process
  */
 interface ImportMetaEnv {
   // API
-  V_DEMANA_BACK_OFFICE_API_URL: string;
+  VITE_BACK_OFFICE_API_URL: string;
 
   // COOKIES
-  V_DEMANA_COOKIE_DOMAIN: string;
-  V_DEMANA_ACCESS_TOKEN_NAME: string;
-  V_DEMANA_REFRESH_TOKEN_NAME: string;
+  MAIN_VITE_COOKIE_DOMAIN: string;
+  VITE_ACCESS_TOKEN_NAME: string;
+  VITE_REFRESH_TOKEN_NAME: string;
 
   // PUBLIC
-  V_DEMANA_PUBLIC_BACK_OFFICE_URL: string;
+  RENDERER_VITE_BACK_OFFICE_URL: string;
+  RENDERER_VITE_RECAPTCHA_SITE_KEY: string;
 }
 
 interface ImportMeta {

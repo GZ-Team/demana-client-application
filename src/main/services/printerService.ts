@@ -1,8 +1,9 @@
 import StorageService from './storageService';
 
-import type { DemanaPrintingConfiguration } from 'types';
+import type { DemanaPrintingConfiguration } from '@root/types';
+import type { DemanaService } from '../types';
 
-export default class PrinterService extends StorageService {
+export default class PrinterService extends StorageService implements DemanaService {
   constructor() {
     super('userData', 'configuration.json');
   }

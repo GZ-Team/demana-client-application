@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-import type { DemanaPrintingConfiguration } from 'types';
+import type { DemanaPrintingConfiguration } from '@root/types';
 
 type StoreState = {
   usbPrinters: Array<USBDevice>;

@@ -2,3 +2,50 @@
     font-family: 'Montserrat';
     src: url('@ui/assets/fonts/montserrat.woff2') format('woff2');
 }
+
+p.demana-link {
+	font-size: 1rem;
+	color: #7d9b84;
+	letter-spacing: 0.02rem;
+	font-weight: 400;
+	display: inline-block;
+}
+
+@media screen and (max-width: 600px) {
+	p.demana-link {
+		font-size: 0.875rem;
+		display: inline-block;
+	}
+}
+
+a.demana-link-red {
+	font-size: 1rem;
+	color: #be0f0f !important;
+	letter-spacing: 0.02rem;
+	font-weight: 400;
+	text-decoration: underline !important;
+	display: inline-block;
+}
+
+@media screen and (max-width: 600px) {
+	a.demana-link-red {
+		font-size: 0.875rem;
+		display: inline-block;
+	}
+}
+
+a.demana-link {
+	font-size: 1rem;
+	color: #7d9b84 !important;
+	letter-spacing: 0.02rem;
+	font-weight: 400;
+	display: inline-block;
+	text-decoration: underline !important;
+	margin-bottom: 0 !important;
+}
+
+@media screen and (max-width: 600px) {
+	a.demana-link {
+		font-size: 0.875rem;
+	}
+}

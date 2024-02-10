@@ -1,7 +1,11 @@
+import useLogger from '@ui/composables/useLogger.ts';
+
 import type { App, Plugin } from 'vue';
 
 export default {
   install: (app: App) => {
-    app.config.errorHandler = (_error, _instance, _info) => {};
+    app.config.errorHandler = (error, _instance, _info): void => {
+      useLogger({ service: 'Error handler' }).error((error as Error).message);
+    };
   }
 } as Plugin;

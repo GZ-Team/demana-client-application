@@ -1,0 +1,14 @@
+mutation refresh {
+	refresh {
+		success
+		message
+		token {
+			value
+			expirationDate
+		}
+		refreshToken {
+			value
+			expirationDate
+		}
+	}
+}

@@ -1,26 +1,83 @@
+import RuntimeConfigService from './runtimeConfigService';
+
 import { getBrowserWindowByProcessId } from '../utils/processUtils';
-
 import useLogger from '../utils/loggerUtils';
+import { pushEventToProcess } from '../utils/eventUtils';
+import { isLocal } from '../utils/environmentUtils.ts';
 
-import type { SerialPort, Session, USBDevice } from 'electron';
+import type {
+  BrowserWindow,
+  Cookie,
+  Cookies,
+  CookiesGetFilter,
+  CookiesSetDetails,
+  SerialPort,
+  Session,
+  USBDevice
+} from 'electron';
 import type { Logger } from 'winston';
+import type { DemanaEventName, DemanaRequestHeaders } from '../../types';
+import type { DemanaService } from '../types';
 
 const ALLOWED_PERMISSIONS = ['usb', 'serial'];
 
-export default class SessionService {
+type DemanaCookieDetails = CookiesGetFilter & CookiesSetDetails;
+
+export default class SessionService extends RuntimeConfigService implements DemanaService {
   private logger: Logger = useLogger({ service: 'SessionService' }).logger;
 
-  private windowId: number;
+  private _uiProcessId: number;
+  private _workerProcessId: number;
 
   private grantedDeviceThroughPermHandler: SerialPort | USBDevice | null = null;
+  private refreshingAuthentication = false;
 
-  constructor(windowId: number) {
-    this.windowId = windowId;
+  constructor(uiProcessId: number, workerProcessId: number) {
+    super();
+
+    this._uiProcessId = uiProcessId;
+    this._workerProcessId = workerProcessId;
+
     this.setup();
   }
 
+  private get cookies(): Cookies {
+    return this.windowSession.cookies;
+  }
+
+  private get accessTokenName(): string {
+    return this.runtimeConfig.VITE_ACCESS_TOKEN_NAME;
+  }
+
+  private get refreshTokenName(): string {
+    return this.runtimeConfig.VITE_REFRESH_TOKEN_NAME;
+  }
+
+  private get defaultCookieDetails(): DemanaCookieDetails {
+    return {
+      url: this.runtimeConfig.BASE_URL,
+      secure: isLocal()
+    };
+  }
+
+  get uiProcess(): BrowserWindow {
+    return getBrowserWindowByProcessId(this._uiProcessId);
+  }
+
+  set uiProcess(newUiProcess: BrowserWindow) {
+    this._uiProcessId = newUiProcess.id;
+  }
+
+  get workerProcess(): BrowserWindow {
+    return getBrowserWindowByProcessId(this._workerProcessId);
+  }
+
+  set workerProcess(newWorkerProcess: BrowserWindow) {
+    this._workerProcessId = newWorkerProcess.id;
+  }
+
   get windowSession(): Session {
-    return getBrowserWindowByProcessId(this.windowId).webContents.session;
+    return this.uiProcess.webContents.session;
   }
 
   private setup(): void {
@@ -129,5 +186,146 @@ export default class SessionService {
         //return false // denied
       }
     );
+  }
+
+  private notifyProcesses(eventName: DemanaEventName, value: unknown): void {
+    [this.uiProcess, this.workerProcess].forEach((process) =>
+      pushEventToProcess({ name: eventName, value }, process)
+    );
+  }
+
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      return (
+        await Promise.allSettled([
+          this.hasCookieByName(this.accessTokenName),
+          this.hasCookieByName(this.refreshTokenName)
+        ])
+      )
+        .map((promiseResult) =>
+          promiseResult.status === 'fulfilled' ? promiseResult.value : false
+        )
+        .reduce((authenticated, hasCookie) => authenticated && hasCookie, true);
+    } catch (exception) {
+      return false;
+    }
+  }
+
+  async refreshAuthenticationSession(): Promise<void> {
+    try {
+      if (this.refreshingAuthentication) {
+        return;
+      }
+
+      this.refreshingAuthentication = true;
+      const refreshToken = await this.getRefreshToken();
+
+      if (!refreshToken) {
+        return;
+      }
+
+      throw new Error('refreshAuthenticationSession is not implemented yet.');
+    } catch (exception) {
+      this.logger.error(
+        `Failed to refresh the authentication of a session: ${(exception as Error).message}`
+      );
+    } finally {
+      this.refreshingAuthentication = false;
+    }
+  }
+
+  async endAuthenticatedSession(): Promise<void> {
+    try {
+      await Promise.all([
+        this.removeCookie(this.accessTokenName),
+        this.removeCookie(this.refreshTokenName)
+      ]);
+
+      this.notifyProcesses('@session:authenticated', await this.isAuthenticated());
+    } catch (exception) {
+      this.logger.error(
+        `Failed to end the session authentication: ${(exception as Error).message}`
+      );
+    }
+  }
+
+  async getAccessToken(): Promise<Cookie | null> {
+    try {
+      return await this.getCookieByName(this.accessTokenName);
+    } catch (exception) {
+      this.logger.error(`Failed to get the access token: ${(exception as Error).message}'`);
+      return null;
+    }
+  }
+
+  async getRefreshToken(): Promise<Cookie | null> {
+    try {
+      return await this.getCookieByName(this.refreshTokenName);
+    } catch (exception) {
+      this.logger.error(`Failed to get the refresh token: ${(exception as Error).message}'`);
+      return null;
+    }
+  }
+
+  async getCookieByName(name: string, options?: DemanaCookieDetails): Promise<Cookie | null> {
+    try {
+      const cookiesByName = await this.cookies.get({
+        ...this.defaultCookieDetails,
+        ...(options || {}),
+        name
+      });
+
+      return cookiesByName.find((cookie) => cookie.name === name) || null;
+    } catch (exception) {
+      throw new Error(
+        `Failed to get a cookie with the name '${name}: ${(exception as Error).message}'`,
+        { cause: exception }
+      );
+    }
+  }
+
+  async hasCookieByName(name: string, options?: DemanaCookieDetails): Promise<boolean> {
+    try {
+      return !!(await this.getCookieByName(name, options));
+    } catch (exception) {
+      return false;
+    }
+  }
+
+  async setCookie(name: string, value: string, options?: CookiesSetDetails): Promise<void> {
+    try {
+      this.logger.info(`Setting a cookie with the name '${name}.`);
+
+      console.log({option: {
+          ...this.defaultCookieDetails,
+          ...options,
+          location: this.uiProcess.webContents
+        }})
+
+      await this.cookies.set({
+        ...this.defaultCookieDetails,
+        ...(options || {}),
+        name,
+        value
+      });
+    } catch (exception) {
+      throw new Error(
+        `Failed to set a cookie with the name '${name}: ${(exception as Error).message}'`,
+        { cause: exception }
+      );
+    }
+  }
+
+  async removeCookie(name: string, url?: string): Promise<void> {
+    try {
+      this.logger.info(`Removing a cookie with the name '${name}.`);
+
+      await this.cookies.remove(url || this.defaultCookieDetails.url, name);
+    } catch (exception) {
+      throw new Error(
+        `Failed to remove a cookie with the name '${name}: ${(exception as Error).message}'`,
+        { cause: exception }
+      );
+    }
   }
 }
