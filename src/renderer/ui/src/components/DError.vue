@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { DemanaError } from '@ui/types';
+import type { DemanaError } from '@ui/types'
 
-defineProps<{ error: DemanaError }>();
+defineProps<{ error: DemanaError }>()
 </script>
 
 <template>

@@ -1,0 +1,19 @@
+# IDE
+.vscode/settings.json
+
+# PERSONAL
+.editorconfig
+
+# PROJECT
+node_modules
+dist
+build
+coverage
+out
+resources
+.output
+coverage
+/test-results
+/playwright-report/
+/blob-report/
+/playwright/.cache/

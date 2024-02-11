@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue'
 
-import { useAppStore } from '@ui/stores/appStore';
+import { useAppStore } from '@ui/stores/appStore'
 
-import useTranslations from '@ui/composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations'
 
-import IntroSection from '@ui/components/pages/login/sections/IntroSection.vue';
-import LoginForm from '@ui/components/pages/login/sections/LoginForm.vue';
+import IntroSection from '@ui/components/pages/login/sections/IntroSection.vue'
+import LoginForm from '@ui/components/pages/login/sections/LoginForm.vue'
 
-const loading = ref<boolean>(true);
+const loading = ref(true)
 
-const { translate } = useTranslations('pages.login');
-const { createBackofficeLink } = useAppStore();
+const { translate } = useTranslations('pages.login')
+const { createBackofficeLink } = useAppStore()
 
 onMounted(() => {
-  loading.value = false;
-});
+    loading.value = false
+})
 </script>
 
 <template>

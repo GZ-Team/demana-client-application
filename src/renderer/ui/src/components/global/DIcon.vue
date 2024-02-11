@@ -1,102 +1,102 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue';
-import { VIcon, VAvatar } from 'vuetify/lib/components/index.mjs';
+import { computed, useAttrs } from 'vue'
+import { VIcon, VAvatar } from 'vuetify/lib/components/index.mjs'
 
-import { icons } from '@ui/assets/icons';
+import { icons } from '@ui/assets/icons'
 
 const props = defineProps({
-  name: { type: String, required: true },
-  xxSmall: { type: Boolean, default: false },
-  xSmall: { type: Boolean, default: false },
-  small: { type: Boolean, default: false },
-  smedium: { type: Boolean, default: false },
-  medium: { type: Boolean, default: false },
-  slarge: { type: Boolean, default: false },
-  large: { type: Boolean, default: false },
-  rotate: { type: [String, Number], default: undefined },
-  right: { type: Boolean, default: false },
-  left: { type: Boolean, default: false },
-  fill: { type: String, default: 'initial' },
-  disabled: { type: Boolean, default: false },
-  stripe: { type: Boolean, default: false },
-  rounded: { type: Boolean, default: false },
-  active: { type: Boolean, default: false },
-  activeClass: { type: String, default: 'active-icon' }
-});
+    name: { type: String, required: true },
+    xxSmall: { type: Boolean, default: false },
+    xSmall: { type: Boolean, default: false },
+    small: { type: Boolean, default: false },
+    smedium: { type: Boolean, default: false },
+    medium: { type: Boolean, default: false },
+    slarge: { type: Boolean, default: false },
+    large: { type: Boolean, default: false },
+    rotate: { type: [String, Number], default: undefined },
+    right: { type: Boolean, default: false },
+    left: { type: Boolean, default: false },
+    fill: { type: String, default: 'initial' },
+    disabled: { type: Boolean, default: false },
+    stripe: { type: Boolean, default: false },
+    rounded: { type: Boolean, default: false },
+    active: { type: Boolean, default: false },
+    activeClass: { type: String, default: 'active-icon' }
+})
 
 const iconContainerElement = computed(() => {
-  const { href } = useAttrs();
+    const { href } = useAttrs()
 
-  if (href) {
-    return 'a';
-  }
-
-  if (props.rounded) {
-    return VAvatar;
-  }
-
-  return 'div';
-});
-
-const parsedIconName = computed(() =>
-  (props.name || '')
-    .split('-')
-    .map((part, partIndex) =>
-      partIndex ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part
-    )
-    .join('')
-);
-
-const isCustomIcon = computed(() => !!icons[parsedIconName.value]);
-
-const selectedIcon = computed(() => {
-  if (parsedIconName.value) {
-    if (!isCustomIcon.value) {
-      return VIcon;
+    if (href) {
+        return 'a'
     }
 
-    return 'img';
-  }
+    if (props.rounded) {
+        return VAvatar
+    }
 
-  return 'div';
-});
+    return 'div'
+})
 
-const iconContent = computed(() => (isCustomIcon.value ? icons[parsedIconName.value].icon : null));
+const parsedIconName = computed(() =>
+    (props.name || '')
+        .split('-')
+        .map((part, partIndex) =>
+            partIndex ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part
+        )
+        .join('')
+)
+
+const isCustomIcon = computed(() => !!icons[parsedIconName.value])
+
+const selectedIcon = computed(() => {
+    if (parsedIconName.value) {
+        if (!isCustomIcon.value) {
+            return VIcon
+        }
+
+        return 'img'
+    }
+
+    return 'div'
+})
+
+const iconContent = computed(() => (isCustomIcon.value ? icons[parsedIconName.value].icon : null))
 
 const classes = computed(() => ({
-  icon: isCustomIcon.value,
-  [props.activeClass]: props.active && !props.rounded,
-  'icon-xxsmall': isCustomIcon.value && props.xxSmall,
-  'icon-xsmall': isCustomIcon.value && props.xSmall,
-  'icon-small': isCustomIcon.value && props.small,
-  'icon-smedium': isCustomIcon.value && props.smedium,
-  'icon-medium': isCustomIcon.value && props.medium,
-  'icon-slarge': isCustomIcon.value && props.slarge,
-  'icon-large': isCustomIcon.value && props.large,
-  'icon--disabled': props.disabled,
-  'icon-full': props.rounded,
-  right: props.right,
-  left: props.left,
-  stripe: props.stripe
-}));
+    icon: isCustomIcon.value,
+    [props.activeClass]: props.active && !props.rounded,
+    'icon-xxsmall': isCustomIcon.value && props.xxSmall,
+    'icon-xsmall': isCustomIcon.value && props.xSmall,
+    'icon-small': isCustomIcon.value && props.small,
+    'icon-smedium': isCustomIcon.value && props.smedium,
+    'icon-medium': isCustomIcon.value && props.medium,
+    'icon-slarge': isCustomIcon.value && props.slarge,
+    'icon-large': isCustomIcon.value && props.large,
+    'icon--disabled': props.disabled,
+    'icon-full': props.rounded,
+    right: props.right,
+    left: props.left,
+    stripe: props.stripe
+}))
 
 const containerClasses = computed(() => {
-  let containerClasses: Record<string, boolean> = {
-    'icon-container': true
-  };
+    let containerClasses: Record<string, boolean> = {
+        'icon-container': true
+    }
 
-  if (props.rounded) {
-    containerClasses = {
-      'icon-rounded': true,
-      ...containerClasses,
-      ...classes.value,
-      [props.activeClass]: props.active && props.rounded,
-      'icon-full': false
-    };
-  }
+    if (props.rounded) {
+        containerClasses = {
+            'icon-rounded': true,
+            ...containerClasses,
+            ...classes.value,
+            [props.activeClass]: props.active && props.rounded,
+            'icon-full': false
+        }
+    }
 
-  return containerClasses;
-});
+    return containerClasses
+})
 </script>
 
 <template>

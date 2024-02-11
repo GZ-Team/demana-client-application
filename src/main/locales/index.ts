@@ -1,17 +1,17 @@
-import en from './en';
-import ca from './ca';
-import es from './es';
+import en from './en'
+import ca from './ca'
+import es from './es'
 
-import type { DemanaLocaleCode, DemanaLocaleTranslation } from '@root/types';
+import type { DemanaLocaleCode, DemanaLocaleTranslation } from '@root/types'
 
 const localeTranslations = {
-  en,
-  ca,
-  es
-} as Record<DemanaLocaleCode, DemanaLocaleTranslation>;
+    en,
+    ca,
+    es
+} as Record<DemanaLocaleCode, DemanaLocaleTranslation>
 
 export const availableLocaleCodes: DemanaLocaleCode[] = Object.keys(
-  localeTranslations
-) as DemanaLocaleCode[];
+    localeTranslations
+) as DemanaLocaleCode[]
 
-export default localeTranslations;
+export default localeTranslations

@@ -1,9 +1,9 @@
-import { attachApisToProcess, sharedPreloadApi } from './sharedPreload';
+import { attachApisToProcess, sharedPreloadApi } from './sharedPreload'
 
-import type { DemanaSharedPreloadApi } from './sharedPreload';
+import type { DemanaSharedPreloadApi } from './sharedPreload'
 
 export type DemanaWorkerProcessPreloadApi = DemanaSharedPreloadApi;
 
-const workerPreloadApi: DemanaWorkerProcessPreloadApi = sharedPreloadApi;
+const workerPreloadApi: DemanaWorkerProcessPreloadApi = sharedPreloadApi
 
-attachApisToProcess({ api: workerPreloadApi });
+attachApisToProcess({ api: workerPreloadApi })

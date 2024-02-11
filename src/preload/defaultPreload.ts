@@ -1,3 +1,3 @@
-import { attachApisToProcess } from './sharedPreload';
+import { attachApisToProcess } from './sharedPreload'
 
-attachApisToProcess();
+attachApisToProcess()

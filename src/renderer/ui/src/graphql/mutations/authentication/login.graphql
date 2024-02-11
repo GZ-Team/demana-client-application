@@ -1,5 +1,5 @@
-mutation desktopLogin($loginForm: LoginForm!) {
-	desktopLogin(loginForm: $loginForm) {
+mutation login($loginForm: LoginForm!) {
+	login(loginForm: $loginForm) {
 		success
 		message
 		token {

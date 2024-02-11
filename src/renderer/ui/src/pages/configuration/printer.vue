@@ -1,201 +1,201 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useVuelidate } from '@vuelidate/core';
-import { required, between } from '@vuelidate/validators';
+import { ref, reactive, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useVuelidate } from '@vuelidate/core'
+import { required, between } from '@vuelidate/validators'
 
-import { usePrinterStore } from '@ui/stores/printerStore';
+import { usePrinterStore } from '@ui/stores/printerStore'
 
-import useTranslations from '@ui/composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations'
 
-const printerStore = usePrinterStore();
-const { usbPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore);
+const printerStore = usePrinterStore()
+const { usbPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore)
 
 const inputLimits = {
-  paperWidth: {
-    minValue: 10,
-    maxValue: 200
-  },
-  paperMargin: {
-    minValue: 1,
-    maxValue: 20
-  }
-};
+    paperWidth: {
+        minValue: 10,
+        maxValue: 200
+    },
+    paperMargin: {
+        minValue: 1,
+        maxValue: 20
+    }
+}
 
-const localSelectedPrinterId = ref<string | null>(null);
+const localSelectedPrinterId = ref<string | null>(null)
 
 const localPrinterConfiguration = reactive<{
   automatic: boolean | null;
   paperWidth: number | null;
   paperMargin: number | null;
 }>({
-  automatic: null,
-  paperWidth: null,
-  paperMargin: null
-});
+    automatic: null,
+    paperWidth: null,
+    paperMargin: null
+})
 
 const printersAsOptions = computed(() =>
-  //TODO: show serial printers too
-  usbPrinters.value.map(({ productId, productName }) => ({
-    key: productId,
-    label: productName?.replace('\u0000', '')
-  }))
-);
+//TODO: show serial printers too
+    usbPrinters.value.map(({ productId, productName }) => ({
+        key: productId,
+        label: productName?.replace('\u0000', '')
+    }))
+)
 
 const computedSelectedPrinterId = computed({
-  get() {
-    return localSelectedPrinterId.value ?? selectedPrinter.value?.productId;
-  },
-  set(newPrinterId) {
-    localSelectedPrinterId.value = `${newPrinterId}`;
-  }
-});
+    get() {
+        return localSelectedPrinterId.value ?? selectedPrinter.value?.productId
+    },
+    set(newPrinterId) {
+        localSelectedPrinterId.value = `${newPrinterId}`
+    }
+})
 
 const computedPaperWidth = computed<number>({
-  get() {
-    return (
-      localPrinterConfiguration.paperWidth ??
+    get() {
+        return (
+            localPrinterConfiguration.paperWidth ??
       printingConfiguration.value?.paperWidth ??
       inputLimits.paperWidth.minValue
-    );
-  },
-  set(newPaperWidth) {
-    localPrinterConfiguration.paperWidth = newPaperWidth;
-  }
-});
+        )
+    },
+    set(newPaperWidth) {
+        localPrinterConfiguration.paperWidth = newPaperWidth
+    }
+})
 
 const computedPaperMargin = computed<number>({
-  get() {
-    return (
-      localPrinterConfiguration.paperMargin ??
+    get() {
+        return (
+            localPrinterConfiguration.paperMargin ??
       printingConfiguration.value?.paperMargin ??
       inputLimits.paperMargin.minValue
-    );
-  },
-  set(newPaperMargin) {
-    localPrinterConfiguration.paperMargin = newPaperMargin;
-  }
-});
+        )
+    },
+    set(newPaperMargin) {
+        localPrinterConfiguration.paperMargin = newPaperMargin
+    }
+})
 
 const computedAutomaticPrinting = computed<boolean>({
-  get() {
-    return localPrinterConfiguration.automatic ?? printingConfiguration.value?.automatic ?? true;
-  },
-  set(isAutomatic) {
-    localPrinterConfiguration.automatic = isAutomatic;
-  }
-});
+    get() {
+        return localPrinterConfiguration.automatic ?? printingConfiguration.value?.automatic ?? true
+    },
+    set(isAutomatic) {
+        localPrinterConfiguration.automatic = isAutomatic
+    }
+})
 
 const localState = computed(() => ({
-  selectedPrinter: computedSelectedPrinterId,
-  paperWidth: computedPaperWidth,
-  paperMargin: computedPaperMargin,
-  automaticPrinting: computedAutomaticPrinting
-}));
+    selectedPrinter: computedSelectedPrinterId,
+    paperWidth: computedPaperWidth,
+    paperMargin: computedPaperMargin,
+    automaticPrinting: computedAutomaticPrinting
+}))
 
 const hasConfigurationBeenUpdated = computed(
-  () =>
-    !Object.entries({
-      selectedPrinterId: localSelectedPrinterId.value,
-      ...localPrinterConfiguration
-    }).every(([localKey, localValue]) => {
-      const savedConfiguration = {
-        selectedPrinterId: selectedPrinter.value,
-        ...printingConfiguration.value
-      };
+    () =>
+        !Object.entries({
+            selectedPrinterId: localSelectedPrinterId.value,
+            ...localPrinterConfiguration
+        }).every(([localKey, localValue]) => {
+            const savedConfiguration = {
+                selectedPrinterId: selectedPrinter.value,
+                ...printingConfiguration.value
+            }
 
-      return `${savedConfiguration[localKey]}` === `${localValue}`;
-    })
-);
+            return `${savedConfiguration[localKey]}` === `${localValue}`
+        })
+)
 
-const { translate, createTranslatedValidator } = useTranslations('pages.printerConfiguration');
+const { translate, createTranslatedValidator } = useTranslations('pages.printerConfiguration')
 
 const vuelidate = useVuelidate(
-  {
-    selectedPrinter: {
-      required: createTranslatedValidator(required)
+    {
+        selectedPrinter: {
+            required: createTranslatedValidator(required)
+        },
+        paperWidth: {
+            required: createTranslatedValidator(required),
+            between: createTranslatedValidator(
+                between(inputLimits.paperWidth.minValue, inputLimits.paperWidth.maxValue)
+            )
+        },
+        paperMargin: {
+            required: createTranslatedValidator(required),
+            between: createTranslatedValidator(
+                between(inputLimits.paperMargin.minValue, inputLimits.paperMargin.maxValue)
+            )
+        },
+        automaticPrinting: {
+            required: createTranslatedValidator(required)
+        }
     },
-    paperWidth: {
-      required: createTranslatedValidator(required),
-      between: createTranslatedValidator(
-        between(inputLimits.paperWidth.minValue, inputLimits.paperWidth.maxValue)
-      )
-    },
-    paperMargin: {
-      required: createTranslatedValidator(required),
-      between: createTranslatedValidator(
-        between(inputLimits.paperMargin.minValue, inputLimits.paperMargin.maxValue)
-      )
-    },
-    automaticPrinting: {
-      required: createTranslatedValidator(required)
-    }
-  },
-  localState
-);
+    localState
+)
 
 const errorMessages = computed(() =>
-  vuelidate.value.$errors.reduce(
-    (messages: Record<string, string[]>, { $propertyPath, $message }) => ({
-      ...messages,
-      [$propertyPath]: [...(messages[$propertyPath] || []), $message.toString()]
-    }),
-    {}
-  )
-);
+    vuelidate.value.$errors.reduce(
+        (messages: Record<string, string[]>, { $propertyPath, $message }) => ({
+            ...messages,
+            [$propertyPath]: [...(messages[$propertyPath] || []), $message.toString()]
+        }),
+        {}
+    )
+)
 
 const {
-  loadAllPrinters,
-  loadPrintingConfiguration,
-  updateSelectedPrinterId,
-  updatePrintingConfiguration,
-  testPrintingConfiguration
-} = printerStore;
+    loadAllPrinters,
+    loadPrintingConfiguration,
+    updateSelectedPrinterId,
+    updatePrintingConfiguration,
+    testPrintingConfiguration
+} = printerStore
 
 async function handleSavePrintingConfiguration() {
-  const isValid = await vuelidate.value.$validate();
+    const isValid = await vuelidate.value.$validate()
 
-  if (isValid) {
-    await Promise.all([
-      updateSelectedPrinterId(selectedPrinter.value?.productId),
-      updatePrintingConfiguration({
-        automatic: computedAutomaticPrinting.value,
-        paperWidth: computedPaperWidth.value,
-        paperMargin: computedPaperMargin.value
-      })
-    ]);
+    if (isValid) {
+        await Promise.all([
+            updateSelectedPrinterId(selectedPrinter.value?.productId),
+            updatePrintingConfiguration({
+                automatic: computedAutomaticPrinting.value,
+                paperWidth: computedPaperWidth.value,
+                paperMargin: computedPaperMargin.value
+            })
+        ])
 
-    const feedback = {
-      message: 'success.venue.save-venue-printer-configuration'
-    };
-  }
+        const feedback = {
+            message: 'success.venue.save-venue-printer-configuration'
+        }
+    }
 }
 
 async function handleDeletePrinter() {
-  await updateSelectedPrinterId(null);
+    await updateSelectedPrinterId(null)
 
-  const feedback = {
-    message: 'success.venue.delete-venue-printer'
-  };
+    const feedback = {
+        message: 'success.venue.delete-venue-printer'
+    }
 }
 
 async function handleTest(): Promise<void> {
-  testPrintingConfiguration();
+    testPrintingConfiguration()
 }
 
 function goBack(): void {}
 
 onMounted(async () => {
-  await Promise.all([loadAllPrinters(), loadPrintingConfiguration()]);
+    await Promise.all([loadAllPrinters(), loadPrintingConfiguration()])
 
-  if (printingConfiguration.value) {
-    const { automatic, paperMargin, paperWidth } = printingConfiguration.value;
+    if (printingConfiguration.value) {
+        const { automatic, paperMargin, paperWidth } = printingConfiguration.value
 
-    localPrinterConfiguration.automatic = automatic;
-    localPrinterConfiguration.paperMargin = paperMargin;
-    localPrinterConfiguration.paperWidth = paperWidth;
-  }
-});
+        localPrinterConfiguration.automatic = automatic
+        localPrinterConfiguration.paperMargin = paperMargin
+        localPrinterConfiguration.paperWidth = paperWidth
+    }
+})
 </script>
 
 <template>

@@ -215,12 +215,12 @@ export type Mutation = {
   deleteProductPropertiesByIds?: Maybe<Array<Maybe<ProductPropertyDto>>>;
   deleteProductsByIds?: Maybe<Array<Maybe<ProductDto>>>;
   deleteQrCodesByIds?: Maybe<Array<Maybe<TableDto>>>;
-  desktopLogin?: Maybe<AuthenticationFeedback>;
   handleRegistrantConfirmation?: Maybe<Feedback>;
   login?: Maybe<AuthenticationFeedback>;
   printOrder?: Maybe<Feedback>;
   refresh?: Maybe<AuthenticationFeedback>;
   register?: Maybe<Feedback>;
+  registerDesktopApplication?: Maybe<Scalars['String']['output']>;
   registerNotificationSubscription?: Maybe<WebPushNotificationSubscriptionDto>;
   registerPaymentModuleConsent?: Maybe<Feedback>;
   resendRegistrantConfirmation?: Maybe<Feedback>;
@@ -235,13 +235,11 @@ export type Mutation = {
   saveUserPreferences?: Maybe<UserPreferencesDto>;
   saveVenue?: Maybe<VenueDto>;
   saveVenueConfiguration?: Maybe<VenueDto>;
-  saveVenuePrinterConfiguration?: Maybe<VenueDto>;
   saveVenueScheduleConfiguration?: Maybe<VenueDto>;
   saveVenueSubscription?: Maybe<VenueSubscriptionDto>;
   saveVenueTranslationConfiguration?: Maybe<VenueDto>;
   sendForgotPasswordRequest?: Maybe<Feedback>;
   setupPaymentMethod?: Maybe<Feedback>;
-  testVenuePrinterConfiguration?: Maybe<Feedback>;
   updateAvailabilityMenuCategories?: Maybe<Array<Maybe<MenuCategoryDto>>>;
   updateAvailabilityMenuSubcategories?: Maybe<Array<Maybe<MenuSubcategoryDto>>>;
   updateAvailabilityProductProperties?: Maybe<Array<Maybe<ProductPropertyDto>>>;
@@ -311,11 +309,6 @@ export type MutationDeleteProductsByIdsArgs = {
 export type MutationDeleteQrCodesByIdsArgs = {
   qrCodeIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
   venueId: Scalars['String']['input'];
-};
-
-
-export type MutationDesktopLoginArgs = {
-  loginForm: LoginForm;
 };
 
 
@@ -410,11 +403,6 @@ export type MutationSaveVenueConfigurationArgs = {
 };
 
 
-export type MutationSaveVenuePrinterConfigurationArgs = {
-  venuePrinterForm: VenuePrinterForm;
-};
-
-
 export type MutationSaveVenueScheduleConfigurationArgs = {
   venueScheduleConfigurationForm: VenueScheduleConfigurationForm;
 };
@@ -437,11 +425,6 @@ export type MutationSendForgotPasswordRequestArgs = {
 
 export type MutationSetupPaymentMethodArgs = {
   paymentMethodForm: UserPaymentMethodForm;
-};
-
-
-export type MutationTestVenuePrinterConfigurationArgs = {
-  venueId: Scalars['ID']['input'];
 };
 
 
@@ -1145,17 +1128,6 @@ export type VenuePrinterConfigurationDto = {
   paperWidth?: Maybe<Scalars['Float']['output']>;
   printerConnectionUrl?: Maybe<Scalars['String']['output']>;
   printerName?: Maybe<Scalars['String']['output']>;
-};
-
-export type VenuePrinterForm = {
-  automatic?: InputMaybe<Scalars['Boolean']['input']>;
-  paperMargin?: InputMaybe<Scalars['Float']['input']>;
-  paperWidth?: InputMaybe<Scalars['Float']['input']>;
-  printerConnectionUrl?: InputMaybe<Scalars['String']['input']>;
-  printerId?: InputMaybe<Scalars['ID']['input']>;
-  printerLocation?: InputMaybe<Scalars['String']['input']>;
-  printerName?: InputMaybe<Scalars['String']['input']>;
-  venueId: Scalars['ID']['input'];
 };
 
 export type VenueScheduleConfigurationForm = {

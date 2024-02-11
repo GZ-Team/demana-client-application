@@ -1,7 +1,7 @@
-import { Notification } from 'electron';
+import { Notification } from 'electron'
 
-import type { NativeImage } from 'electron';
-import type { DemanaService } from '../types';
+import type { NativeImage } from 'electron'
+import type { DemanaService } from '../types'
 
 export type DemanaNotificationOptions = {
   title: string;
@@ -10,19 +10,19 @@ export type DemanaNotificationOptions = {
 };
 
 export default class NotificationService implements DemanaService {
-  private defaultIcon: string;
+    private defaultIcon: string
 
-  constructor(defaultIcon: NativeImage) {
-    this.defaultIcon = defaultIcon.toDataURL();
-  }
+    constructor(defaultIcon: NativeImage) {
+        this.defaultIcon = defaultIcon.toDataURL()
+    }
 
-  showNotification(options: DemanaNotificationOptions): void {
-    const { title, message, icon } = options;
+    showNotification(options: DemanaNotificationOptions): void {
+        const { title, message, icon } = options
 
-    new Notification({
-      title,
-      body: message,
-      icon: icon ? icon.toDataURL() : this.defaultIcon
-    }).show();
-  }
+        new Notification({
+            title,
+            body: message,
+            icon: icon ? icon.toDataURL() : this.defaultIcon
+        }).show()
+    }
 }

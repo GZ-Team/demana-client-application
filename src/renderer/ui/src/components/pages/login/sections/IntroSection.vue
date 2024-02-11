@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useDisplay } from 'vuetify';
+import { computed } from 'vue'
+import { useDisplay } from 'vuetify'
 
-import useTranslations from '@ui/composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations'
 
-const { xl, lg, md, sm, xs, smAndUp } = useDisplay();
+const { xl, lg, md, sm, xs, smAndUp } = useDisplay()
 
 const titleClasses = computed(() => ({
-  'page-title-xl': xl,
-  'page-title-lg': lg,
-  'page-title-md': md,
-  'page-title-sm': sm,
-  'page-title-xs': xs
-}));
+    'page-title-xl': xl,
+    'page-title-lg': lg,
+    'page-title-md': md,
+    'page-title-sm': sm,
+    'page-title-xs': xs
+}))
 
-const { translate } = useTranslations('pages.login.sections.intro');
+const { translate } = useTranslations('pages.login.sections.intro')
 </script>
 
 <template>

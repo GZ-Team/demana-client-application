@@ -1,109 +1,119 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { useVuelidate } from '@vuelidate/core';
-import { required, email } from '@vuelidate/validators';
-import { useReCaptcha } from 'vue-recaptcha-v3';
+import { ref, reactive, toRefs, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useVuelidate } from '@vuelidate/core'
+import { required, email } from '@vuelidate/validators'
+import { useReCaptcha } from 'vue-recaptcha-v3'
 
-import { useAuthStore } from '@ui/stores/authStore';
-import { useVenueStore } from '@ui/stores/venueStore';
+import { useAppStore } from '@ui/stores/appStore'
+import { useAuthStore } from '@ui/stores/authStore'
+import { useVenueStore } from '@ui/stores/venueStore'
 
-import useTranslations from '@ui/composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations'
 
-import type { LoginForm } from '@generated/graphql';
+import type { LoginForm } from '@generated/graphql'
 
-const venueStore = useVenueStore();
-const authStore = useAuthStore();
+const appStore = useAppStore()
+const venueStore = useVenueStore()
+const authStore = useAuthStore()
 
 const props = defineProps({
-  loading: { type: Boolean, default: false }
-});
+    loading: { type: Boolean, default: false }
+})
 
-const isProcessing = ref<boolean>(false);
+const isProcessing = ref<boolean>(false)
 
 const loginForm = reactive<{
   email: string | null;
   password: string | null;
   verification: string | null;
 }>({
-  email: null,
-  password: null,
-  verification: null
-});
+    email: null,
+    password: null,
+    verification: null
+})
 
-const { venue } = storeToRefs(venueStore);
-const { loading } = toRefs(props);
+const { loading } = toRefs(props)
+const { appId } = storeToRefs(appStore)
+const { venue } = storeToRefs(venueStore)
 
-const { login, getUser } = authStore;
-const { translate, createTranslatedValidator } = useTranslations('pages.login.sections.loginForm');
+const { getAppId } = appStore
+const { login, getUser } = authStore
+const { registerDesktopApplication } = venueStore
+const { translate, createTranslatedValidator } = useTranslations('pages.login.sections.loginForm')
 
 const vuelidate = useVuelidate(
-  {
-    email: {
-      required: createTranslatedValidator(required),
-      email: createTranslatedValidator(email)
+    {
+        email: {
+            required: createTranslatedValidator(required),
+            email: createTranslatedValidator(email)
+        },
+        password: {
+            required: createTranslatedValidator(required)
+        }
     },
-    password: {
-      required: createTranslatedValidator(required)
-    }
-  },
-  loginForm
-);
+    loginForm
+)
 
 const errorMessages = computed(() =>
-  vuelidate.value.$errors.reduce(
-    (messages: Record<string, string[]>, { $propertyPath, $message }) => ({
-      ...messages,
-      [$propertyPath]: [...(messages[$propertyPath] || []), $message.toString()]
-    }),
-    {}
-  )
-);
+    vuelidate.value.$errors.reduce(
+        (messages: Record<string, string[]>, { $propertyPath, $message }) => ({
+            ...messages,
+            [$propertyPath]: [...(messages[$propertyPath] || []), $message.toString()]
+        }),
+        {}
+    )
+)
 
-const router = useRouter();
-const reCaptcha = useReCaptcha();
+const router = useRouter()
+const reCaptcha = useReCaptcha()
 
 async function handleLogin(): Promise<void> {
-  const isValid = await vuelidate.value.$validate();
+    const isValid = await vuelidate.value.$validate()
 
-  loginForm.verification = await reCaptcha!.executeRecaptcha('desktop_login');
+    loginForm.verification = await reCaptcha!.executeRecaptcha('desktop_login')
 
-  if (isValid) {
-    isProcessing.value = true;
+    if (isValid) {
+        isProcessing.value = true
 
-    // this.$cookies.remove(this.$config.accessTokenName);
-    // this.$cookies.remove(this.$config.refreshTokenName);
+        // this.$cookies.remove(this.$config.accessTokenName);
+        // this.$cookies.remove(this.$config.refreshTokenName);
 
-    const feedback = await login(loginForm as LoginForm);
-    await getUser();
+        const loginFeedback = await login(loginForm as LoginForm)
 
-    isProcessing.value = false;
+        if (venue.value && !venue.value.paused) {
+            // this.handleFeedback({ ...feedback, cleanNotifications: true });
+        }
 
-    if (venue.value && !venue.value.paused) {
-      // this.handleFeedback({ ...feedback, cleanNotifications: true });
+        if (!appId.value) {
+            await registerDesktopApplication()
+        }
+
+        await getUser()
+
+        isProcessing.value = false
+
+        if (loginFeedback.success) {
+            // const redirectRouteName = this.$getSessionStorageValue(this.$config.redirectRouteCookieName);
+            const redirectRouteName = null
+
+            if (redirectRouteName) {
+                // this.$removeSessionStorageValue(this.$config.redirectRouteCookieName);
+                await router.push({ name: redirectRouteName })
+            } else if (venue.value!.paused) {
+                await router.push({ name: 'paused-subscription' })
+            } else {
+                await router.push({ path: '/configuration' })
+            }
+        }
     }
-
-    if (feedback.success) {
-      // const redirectRouteName = this.$getSessionStorageValue(this.$config.redirectRouteCookieName);
-      const redirectRouteName = null;
-
-      if (redirectRouteName) {
-        // this.$removeSessionStorageValue(this.$config.redirectRouteCookieName);
-        await router.push({ name: redirectRouteName });
-      } else if (venue.value!.paused) {
-        await router.push({ name: 'paused-subscription' });
-      } else {
-        await router.push({ path: '/configuration' });
-      }
-    }
-  }
 }
 
 onMounted(async () => {
-  if (!reCaptcha?.isLoaded) {
-    await reCaptcha.recaptchaLoaded()
-  }
+    if (!reCaptcha?.isLoaded) {
+        await reCaptcha.recaptchaLoaded()
+    }
 })
 </script>
 

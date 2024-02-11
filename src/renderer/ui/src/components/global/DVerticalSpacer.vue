@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from 'vue'
 
 const props = defineProps({
-  margin: { type: String, default: null },
-  xSmall: { type: Boolean, default: false },
-  small: { type: Boolean, default: false },
-  medium: { type: Boolean, default: false },
-  large: { type: Boolean, default: false },
-  xLarge: { type: Boolean, default: false },
-  xxLarge: { type: Boolean, default: false }
-});
+    margin: { type: String, default: null },
+    xSmall: { type: Boolean, default: false },
+    small: { type: Boolean, default: false },
+    medium: { type: Boolean, default: false },
+    large: { type: Boolean, default: false },
+    xLarge: { type: Boolean, default: false },
+    xxLarge: { type: Boolean, default: false }
+})
 
 const classes = computed(() => ({
-  'vertical-spacer-x-small': props.xSmall,
-  'vertical-spacer-small': props.small,
-  'vertical-spacer-medium': props.medium,
-  'vertical-spacer-large': props.large,
-  'vertical-spacer-x-large': props.xLarge,
-  'vertical-spacer-xx-large': props.xxLarge
-}));
+    'vertical-spacer-x-small': props.xSmall,
+    'vertical-spacer-small': props.small,
+    'vertical-spacer-medium': props.medium,
+    'vertical-spacer-large': props.large,
+    'vertical-spacer-x-large': props.xLarge,
+    'vertical-spacer-xx-large': props.xxLarge
+}))
 
 const style = computed(() => ({
-  'margin-top': props.margin
-}));
+    'margin-top': props.margin
+}))
 </script>
 
 <template>

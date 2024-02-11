@@ -1,16 +1,16 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router'
 
-import { installMiddleware } from './middleware';
+import { installMiddleware } from './middleware'
 
-import routes from './routes';
+import routes from './routes'
 
 export function createDemanaRouter() {
-  const router = createRouter({
-    history: createWebHistory(),
-    routes
-  });
+    const router = createRouter({
+        history: createWebHistory(),
+        routes
+    })
 
-  installMiddleware(router);
+    installMiddleware(router)
 
-  return router;
+    return router
 }

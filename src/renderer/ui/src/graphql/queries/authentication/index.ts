@@ -1,5 +1,5 @@
-import getUser from './getUser.graphql';
+import getUser from './getUser.graphql'
 
 export default {
-  getUser
-};
+    getUser
+}

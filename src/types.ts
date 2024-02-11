@@ -1,32 +1,32 @@
-import type { CookiesGetFilter, CookiesSetDetails } from 'electron';
+import type { CookiesGetFilter, CookiesSetDetails } from 'electron'
 
 class Device {
-  readonly deviceId: string;
-  readonly name: string;
+    readonly deviceId: string
+    readonly name: string
 
-  constructor(deviceId: string, name: string) {
-    this.deviceId = deviceId;
-    this.name = name;
-  }
+    constructor(deviceId: string, name: string) {
+        this.deviceId = deviceId
+        this.name = name
+    }
 }
 
 export class PrinterDevice extends Device {
-  isDefault = false;
-  portName: string | null;
-  printerStatus: string;
-
-  constructor(
-    deviceId: string,
-    name: string,
-    isDefault: boolean,
-    portName: string,
+    isDefault = false
+    portName: string | null
     printerStatus: string
-  ) {
-    super(deviceId, name);
-    this.isDefault = isDefault;
-    this.portName = portName;
-    this.printerStatus = printerStatus;
-  }
+
+    constructor(
+        deviceId: string,
+        name: string,
+        isDefault: boolean,
+        portName: string,
+        printerStatus: string
+    ) {
+        super(deviceId, name)
+        this.isDefault = isDefault
+        this.portName = portName
+        this.printerStatus = printerStatus
+    }
 }
 
 export enum TicketType {
@@ -53,7 +53,7 @@ export type DemanaLocaleTranslation = {
     };
   };
   notifications: {
-    runningInbackground: {
+    runningInBackground: {
       title: string;
       message: string;
     };
@@ -137,8 +137,13 @@ export type DemanaTemporaryDataDto = {
   redirectionRoute: string;
 };
 
+export type DemanaAppData = {
+  id: string;
+}
+
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
+// https://www.electronjs.org/docs/latest/api/app#appgetpathname
 export type StorageKey =
   | 'home'
   | 'appData'

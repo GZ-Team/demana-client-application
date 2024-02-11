@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 
-import useTranslations from '@ui/composables/useTranslations';
+import useTranslations from '@ui/composables/useTranslations'
 
-import DLanguageSelector from '@ui/components/DLanguageSelector.vue';
+import DLanguageSelector from '@ui/components/DLanguageSelector.vue'
 
-const { translate } = useTranslations('pages.preferences');
+const { translate } = useTranslations('pages.preferences')
 const {
-  options: { history },
-  back,
-  push
-} = useRouter();
+    options: { history },
+    back,
+    push
+} = useRouter()
 
 function goBack() {
-  return history.state.back ? back() : push({ path: '/' });
+    return history.state.back ? back() : push({ path: '/' })
 }
 </script>
 
