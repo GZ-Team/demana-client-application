@@ -3,7 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 
-import AppDataService from './services/appDataService.ts'
+import AppDataService from './services/appDataService'
 import ContextService from './services/contextService'
 import RuntimeConfigService from './services/runtimeConfigService'
 import PreferencesService from './services/preferencesService'
@@ -76,7 +76,7 @@ function getOrCreateMainUiProcess(): BrowserWindow {
 
 function initializeIpcHandlers(): void {
     // APP DATA
-    ipcMain.handle('getAppId', (_event): string => {
+    ipcMain.handle('getAppId', (): string => {
         return context.getServiceByName<AppDataService>('app').appId
     })
 
@@ -98,16 +98,14 @@ function initializeIpcHandlers(): void {
                     { name: '@messages:new', value: message },
                     mainWorkerProcess
                 )
-            default:
-                throw new Error(`'${message.target}' is not a valid message target.`)
             }
         } catch (exception) {
-            throw new Error(`Failed to process a received message: ${(exception as Error).message}`)
+            throw new Error(`Failed to process a received message for target '${message.target}': ${(exception as Error).message}`)
         }
     })
 
     // PRINTING
-    ipcMain.handle('getSelectedPrinter', (_event): string => {
+    ipcMain.handle('getSelectedPrinter', (): string => {
         return context.getServiceByName<PrinterService>('printer').selectedPrinterId
     })
 
@@ -115,7 +113,7 @@ function initializeIpcHandlers(): void {
         context.getServiceByName<PrinterService>('printer').selectedPrinterId = printerId
     })
 
-    ipcMain.handle('getPrintingConfiguration', (_event): DemanaPrintingConfiguration => {
+    ipcMain.handle('getPrintingConfiguration', (): DemanaPrintingConfiguration => {
         return context.getServiceByName<PrinterService>('printer').printingConfiguration
     })
 
@@ -135,14 +133,14 @@ function initializeIpcHandlers(): void {
         }
     )
 
-    ipcMain.handle('getPreferences', (_event): DemanaPreferences => {
+    ipcMain.handle('getPreferences', (): DemanaPreferences => {
         return context.getServiceByName<PreferencesService>('preferences').preferences
     })
 
     // TEMPORARY DATA
     ipcMain.handle(
         'getTemporaryData',
-        (_event): Optional<DemanaTemporaryDataDto, 'redirectionRoute'> => {
+        (): Optional<DemanaTemporaryDataDto, 'redirectionRoute'> => {
             const { currentRouteName } =
         context.getServiceByName<TemporaryDataService>('temporaryData').data
 
@@ -164,13 +162,13 @@ function initializeIpcHandlers(): void {
     )
 
     // I18N
-    ipcMain.handle('getAvailableLocaleCodes', (_event): DemanaLocaleCode[] => {
+    ipcMain.handle('getAvailableLocaleCodes', (): DemanaLocaleCode[] => {
         return context.getServiceByName<TranslationService>('translation').availableLocaleCodes
     })
 
     ipcMain.handle(
         'getAllTranslations',
-        (_event): Record<DemanaLocaleCode, DemanaLocaleTranslation> => {
+        (): Record<DemanaLocaleCode, DemanaLocaleTranslation> => {
             return context.getServiceByName<TranslationService>('translation').allTranslations
         }
     )

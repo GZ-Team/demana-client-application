@@ -12,7 +12,6 @@
     "esModuleInterop": true,
     "composite": true,
     "allowJs": true,
-    "allowImportingTsExtensions": true,
     "paths": {
       "@root/*": [
         "./src/*"

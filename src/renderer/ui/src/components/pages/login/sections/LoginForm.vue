@@ -38,7 +38,6 @@ const { loading } = toRefs(props)
 const { appId } = storeToRefs(appStore)
 const { venue } = storeToRefs(venueStore)
 
-const { getAppId } = appStore
 const { login, getUser } = authStore
 const { registerDesktopApplication } = venueStore
 const { translate, createTranslatedValidator } = useTranslations('pages.login.sections.loginForm')
@@ -86,15 +85,16 @@ async function handleLogin(): Promise<void> {
             // this.handleFeedback({ ...feedback, cleanNotifications: true });
         }
 
-        if (!appId.value) {
-            await registerDesktopApplication()
-        }
-
-        await getUser()
 
         isProcessing.value = false
 
         if (loginFeedback.success) {
+            await getUser()
+
+            if (!appId.value) {
+                await registerDesktopApplication()
+            }
+
             // const redirectRouteName = this.$getSessionStorageValue(this.$config.redirectRouteCookieName);
             const redirectRouteName = null
 
@@ -112,7 +112,7 @@ async function handleLogin(): Promise<void> {
 
 onMounted(async () => {
     if (!reCaptcha?.isLoaded) {
-        await reCaptcha.recaptchaLoaded()
+        await reCaptcha!.recaptchaLoaded()
     }
 })
 </script>

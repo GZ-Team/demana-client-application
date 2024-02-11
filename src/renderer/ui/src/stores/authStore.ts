@@ -1,11 +1,14 @@
 import { defineStore } from 'pinia'
 import { useCookies } from '@vueuse/integrations/useCookies'
 
+import { useAppStore } from '@ui/stores/appStore'
 import { useVenueStore } from '@ui/stores/venueStore'
+import { usePrinterStore } from '@ui/stores/printerStore'
 
-import useGraphQl from '@ui/composables/useGraphQl.ts'
+import useGraphQl from '@ui/composables/useGraphQl'
 
-import type { UserDto, LoginForm, AuthenticationFeedback } from '@generated/graphql.ts'
+import type { UserDto, LoginForm, AuthenticationFeedback } from '@generated/graphql'
+import { isNil } from '@root/main/utils/sharedUtils'
 
 type StoreState = {
   user: UserDto | null;
@@ -40,7 +43,7 @@ export const useAuthStore = defineStore('authStore', {
                         const { token, refreshToken } = data
 
                         if (token?.value && refreshToken?.value) {
-                            const cookies = useCookies([accessTokenName, refreshToken])
+                            const cookies = useCookies([accessTokenName, refreshTokenName])
 
                             cookies.set(accessTokenName, token.value, {
                                 expires: new Date(token.expirationDate!)
@@ -86,6 +89,19 @@ export const useAuthStore = defineStore('authStore', {
 
                     if (venue) {
                         useVenueStore().venue = venue
+
+                        if (!useAppStore().appId && venue.configuration && venue.configuration.venuePrinterConfiguration) {
+                            const { automatic, paperMargin, paperWidth } = venue.configuration.venuePrinterConfiguration
+                            const printerStore = usePrinterStore()
+
+                            const existingPrintingConfiguration = await printerStore.loadPrintingConfiguration()
+
+                            Object.entries({ automatic, paperMargin, paperWidth })
+                                .filter(([, value]) => !isNil(value))
+                                .forEach(([key, value]) => existingPrintingConfiguration[key] = value)
+
+                            await printerStore.updatePrintingConfiguration(existingPrintingConfiguration)
+                        }
                     }
                 }
             } catch (exception) {
