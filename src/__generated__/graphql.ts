@@ -1026,6 +1026,7 @@ export type VenueBalanceInformationDto = {
 
 export type VenueConfigurationDto = {
   __typename?: 'VenueConfigurationDto';
+  desktopApplications?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   disableQrCodesOnVenueClosed?: Maybe<Scalars['Boolean']['output']>;
   languages?: Maybe<Array<Maybe<LanguageDto>>>;
   orderLimit?: Maybe<Scalars['Int']['output']>;

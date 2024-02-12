@@ -14,7 +14,7 @@ import {
     DemanaApiRequestFeedback,
     DemanaGraphQLMutationOptions,
     DemanaGraphQLQueryOptions
-} from '@ui/utils/graphQlUtils.ts'
+} from '@ui/utils/graphQlUtils'
 
 type useGraphQlValue = {
   query: <T>(

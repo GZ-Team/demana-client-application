@@ -2,6 +2,7 @@ import DIcon from '@ui/components/global/DIcon.vue'
 import DVerticalSpacer from '@ui/components/global/DVerticalSpacer.vue'
 import DLink from '@ui/components/global/DLink.vue'
 import DPageHeader from '@ui/components/global/DPageHeader.vue'
+import DNotification from '@ui/components/global/DNotification.vue'
 
 import type { App, Plugin } from 'vue'
 
@@ -12,5 +13,6 @@ export default {
         app.component('DVerticalSpacer', DVerticalSpacer)
         app.component('DLink', DLink)
         app.component('DPageHeader', DPageHeader)
+        app.component('DNotification', DNotification)
     }
 } as Plugin

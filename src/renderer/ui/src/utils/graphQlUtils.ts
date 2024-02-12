@@ -9,7 +9,7 @@ import type {
     TypedDocumentNode
 } from '@apollo/client'
 import type { GraphQLQueryOperationPath, GraphQLMutationOperationPath } from '../graphql'
-import type { DemanaLogger } from '@root/types.ts'
+import type { DemanaLogger } from '@root/types'
 
 export type DemanaGraphQLOperationOptions<T> = {
   variables?: Record<string, unknown>;
@@ -106,8 +106,8 @@ export async function handleGraphQlMutation<T>(
             const { message, success } = keyData
 
             feedback.data = keyData as T
-            feedback.success = success || true
-            feedback.message = message || successMessage || defaultMessages.success
+            feedback.success = success ?? true
+            feedback.message = message ?? successMessage ?? defaultMessages.success
 
             if (feedback.success && !!onSuccess) {
                 const updatedFeedback = await onSuccess(keyData, feedback)
@@ -146,7 +146,7 @@ export async function handleGraphQlMutation<T>(
         if (!onError) {
             feedback.message = graphQLErrors[0]
                 ? graphQLErrors[0].message
-                : errorMessage || defaultMessages.error
+                : errorMessage ?? defaultMessages.error
             feedback.success = false
         } else {
             const updatedFeedback = await onError(graphQLErrors, feedback)
@@ -187,8 +187,8 @@ export async function handleGraphQlQuery<T>(
             const { message, success } = keyData
 
             feedback.data = keyData as T
-            feedback.success = success || true
-            feedback.message = message || successMessage || defaultMessages.success
+            feedback.success = success ?? true
+            feedback.message = message ?? successMessage ?? defaultMessages.success
 
             if (feedback.success && onSuccess) {
                 const updatedFeedback = await onSuccess(keyData, feedback)
@@ -227,7 +227,7 @@ export async function handleGraphQlQuery<T>(
         if (!onError) {
             feedback.message = graphQLErrors[0]
                 ? graphQLErrors[0].message
-                : errorMessage || defaultMessages.error
+                : errorMessage ?? defaultMessages.error
             feedback.success = false
         } else {
             const updatedFeedback = await onError(graphQLErrors, feedback)

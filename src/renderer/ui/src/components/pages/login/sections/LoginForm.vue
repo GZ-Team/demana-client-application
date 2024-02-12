@@ -11,6 +11,7 @@ import { useAuthStore } from '@ui/stores/authStore'
 import { useVenueStore } from '@ui/stores/venueStore'
 
 import useTranslations from '@ui/composables/useTranslations'
+import useFeedback from '@ui/composables/useFeedback'
 
 import type { LoginForm } from '@generated/graphql'
 
@@ -41,6 +42,7 @@ const { venue } = storeToRefs(venueStore)
 const { login, getUser } = authStore
 const { registerDesktopApplication } = venueStore
 const { translate, createTranslatedValidator } = useTranslations('pages.login.sections.loginForm')
+const { clearNotifications } = useFeedback()
 
 const vuelidate = useVuelidate(
     {
@@ -69,6 +71,8 @@ const router = useRouter()
 const reCaptcha = useReCaptcha()
 
 async function handleLogin(): Promise<void> {
+    clearNotifications()
+
     const isValid = await vuelidate.value.$validate()
 
     loginForm.verification = await reCaptcha!.executeRecaptcha('desktop_login')
@@ -81,12 +85,9 @@ async function handleLogin(): Promise<void> {
 
         const loginFeedback = await login(loginForm as LoginForm)
 
-        if (venue.value && !venue.value.paused) {
-            // this.handleFeedback({ ...feedback, cleanNotifications: true });
-        }
-
-
         isProcessing.value = false
+
+        useFeedback(loginFeedback)
 
         if (loginFeedback.success) {
             await getUser()

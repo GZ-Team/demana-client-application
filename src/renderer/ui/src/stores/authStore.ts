@@ -8,7 +8,8 @@ import { usePrinterStore } from '@ui/stores/printerStore'
 import useGraphQl from '@ui/composables/useGraphQl'
 
 import type { UserDto, LoginForm, AuthenticationFeedback } from '@generated/graphql'
-import { isNil } from '@root/main/utils/sharedUtils'
+import { isNil } from '../../../../main/utils/sharedUtils'
+import { DemanaApiRequestFeedback } from '@ui/utils/graphQlUtils'
 
 type StoreState = {
   user: UserDto | null;
@@ -29,7 +30,7 @@ export const useAuthStore = defineStore('authStore', {
     },
 
     actions: {
-        async login(loginForm: LoginForm): Promise<AuthenticationFeedback> {
+        async login(loginForm: LoginForm): Promise<DemanaApiRequestFeedback<AuthenticationFeedback>> {
             try {
                 return await useGraphQl().mutate<AuthenticationFeedback>({
                     mutation: 'authentication.login',
