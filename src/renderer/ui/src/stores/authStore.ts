@@ -7,7 +7,7 @@ import { usePrinterStore } from '@ui/stores/printerStore'
 
 import useGraphQl from '@ui/composables/useGraphQl'
 
-import type { UserDto, LoginForm, AuthenticationFeedback } from '@generated/graphql'
+import type { AuthenticationFeedback, LoginForm, UserDto } from '@generated/graphql'
 import { isNil } from '../../../../main/utils/sharedUtils'
 import { DemanaApiRequestFeedback } from '@ui/utils/graphQlUtils'
 
@@ -26,7 +26,7 @@ export const useAuthStore = defineStore('authStore', {
     }),
 
     getters: {
-        isLoggedIn: (): boolean => !!useCookies([accessTokenName]).get(accessTokenName)
+        isLoggedIn: (): boolean => !!useCookies([accessTokenName]).get(accessTokenName) && !!useAppStore().appId
     },
 
     actions: {
@@ -65,6 +65,29 @@ export const useAuthStore = defineStore('authStore', {
                 await window.api.refresh()
             } catch (exception) {
                 throw new Error(`Failed to refresh authentication: ${(exception as Error).message}`, {
+                    cause: exception
+                })
+            }
+        },
+        async registerDesktopApplication() {
+            try {
+                return await useGraphQl().mutate<string>({
+                    mutation: 'desktop-application.registerDesktopApplication',
+                    key: 'registerDesktopApplication',
+                    successMessage: 'globals.notifications.authentication.register-desktop-application',
+                    async onSuccess(data) {
+                        if(!data) {
+                            return
+                        }
+
+                        await useAppStore().setAppId(data)
+
+                        const cookies = useCookies([accessTokenName])
+                        cookies.remove(accessTokenName)
+                    },
+                })
+            } catch (exception) {
+                throw new Error(`Failed to register this desktop application: ${(exception as Error).message}`, {
                     cause: exception
                 })
             }

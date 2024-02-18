@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useVuelidate } from '@vuelidate/core'
-import { required, between } from '@vuelidate/validators'
+import { between, required } from '@vuelidate/validators'
 
 import { usePrinterStore } from '@ui/stores/printerStore'
 
 import useTranslations from '@ui/composables/useTranslations'
+import useFeedback from '@ui/composables/useFeedback'
 
 const printerStore = usePrinterStore()
 const { usbPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore)
@@ -38,7 +39,7 @@ const printersAsOptions = computed(() =>
 //TODO: show serial printers too
     usbPrinters.value.map(({ productId, productName }) => ({
         key: productId,
-        label: productName?.replace('\u0000', '')
+        label: productName?.replaceAll('\u0000', '')
     }))
 )
 
@@ -47,6 +48,7 @@ const computedSelectedPrinterId = computed({
         return localSelectedPrinterId.value ?? selectedPrinter.value?.productId
     },
     set(newPrinterId) {
+        console.log({newPrinterId})
         localSelectedPrinterId.value = `${newPrinterId}`
     }
 })
@@ -87,18 +89,15 @@ const computedAutomaticPrinting = computed<boolean>({
 })
 
 const localState = computed(() => ({
-    selectedPrinter: computedSelectedPrinterId,
-    paperWidth: computedPaperWidth,
-    paperMargin: computedPaperMargin,
-    automaticPrinting: computedAutomaticPrinting
+    selectedPrinter: computedSelectedPrinterId.value,
+    paperWidth: computedPaperWidth.value,
+    paperMargin: computedPaperMargin.value,
+    automaticPrinting: computedAutomaticPrinting.value
 }))
 
 const hasConfigurationBeenUpdated = computed(
     () =>
-        !Object.entries({
-            selectedPrinterId: localSelectedPrinterId.value,
-            ...localPrinterConfiguration
-        }).every(([localKey, localValue]) => {
+        !Object.entries(localState.value).every(([localKey, localValue]) => {
             const savedConfiguration = {
                 selectedPrinterId: selectedPrinter.value,
                 ...printingConfiguration.value
@@ -157,7 +156,7 @@ async function handleSavePrintingConfiguration() {
 
     if (isValid) {
         await Promise.all([
-            updateSelectedPrinterId(selectedPrinter.value?.productId),
+            updateSelectedPrinterId(computedSelectedPrinterId.value || null),
             updatePrintingConfiguration({
                 automatic: computedAutomaticPrinting.value,
                 paperWidth: computedPaperWidth.value,
@@ -165,9 +164,10 @@ async function handleSavePrintingConfiguration() {
             })
         ])
 
-        const feedback = {
+        useFeedback({
+            success: true,
             message: 'success.venue.save-venue-printer-configuration'
-        }
+        })
     }
 }
 
@@ -180,13 +180,15 @@ async function handleDeletePrinter() {
 }
 
 async function handleTest(): Promise<void> {
-    testPrintingConfiguration()
+    await testPrintingConfiguration()
 }
 
 function goBack(): void {}
 
 onMounted(async () => {
     await Promise.all([loadAllPrinters(), loadPrintingConfiguration()])
+
+    console.log({ printers: usbPrinters.value})
 
     if (printingConfiguration.value) {
         const { automatic, paperMargin, paperWidth } = printingConfiguration.value
@@ -245,7 +247,7 @@ onMounted(async () => {
                 hide-details="auto"
                 :error="vuelidate.selectedPrinter.$error"
                 :error-messages="errorMessages.selectedPrinter"
-                item-text="label"
+                item-title="label"
                 item-value="key"
                 no-data-text="No printers to be found"
                 rounded
@@ -366,7 +368,6 @@ onMounted(async () => {
           color="info"
           rounded
           block
-          :disabled="hasConfigurationBeenUpdated"
           @click="handleTest"
         >
           {{ translate('actions.test') }}

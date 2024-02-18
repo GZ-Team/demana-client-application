@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 
+import useGraphQl from '@ui/composables/useGraphQl'
+
 import type { DemanaPrintingConfiguration } from '@root/types'
+import type { DemanaApiRequestFeedback } from '@ui/utils/graphQlUtils'
 
 type StoreState = {
   usbPrinters: Array<USBDevice>;
@@ -115,9 +118,12 @@ export const usePrinterStore = defineStore('printerStore', {
                 )
             }
         },
-        testPrintingConfiguration(): void {
+        async testPrintingConfiguration(): Promise<DemanaApiRequestFeedback<boolean>> {
             try {
-                window.api.sendMessage({ target: 'worker', content: 'test-printer' })
+                return await useGraphQl().mutate<boolean>({
+                    mutation: 'desktop-application.printTestTicket',
+                    key: 'printTestTicket'
+                })
             } catch (exception) {
                 throw new Error(
                     `Failed to test the printing configuration: ${(exception as Error).message}`,

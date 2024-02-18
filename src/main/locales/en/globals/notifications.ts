@@ -25,9 +25,7 @@ export default {
     success: {
         default: 'It worked!',
         authentication: {
-            'login-success': 'Welcome back!'
-        },
-        venue: {
+            'login-success': 'Welcome back!',
             'register-desktop-application': 'This application was successfully attached to your Demana account!'
         }
     }

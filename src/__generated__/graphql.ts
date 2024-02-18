@@ -218,6 +218,7 @@ export type Mutation = {
   handleRegistrantConfirmation?: Maybe<Feedback>;
   login?: Maybe<AuthenticationFeedback>;
   printOrder?: Maybe<Feedback>;
+  printTestTicket?: Maybe<Scalars['Boolean']['output']>;
   refresh?: Maybe<AuthenticationFeedback>;
   register?: Maybe<Feedback>;
   registerDesktopApplication?: Maybe<Scalars['String']['output']>;

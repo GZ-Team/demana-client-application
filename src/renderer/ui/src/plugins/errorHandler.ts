@@ -1,4 +1,4 @@
-import useLogger from '@ui/composables/useLogger.ts'
+import useLogger from '@ui/composables/useLogger'
 
 import type { App, Plugin } from 'vue'
 

@@ -1,7 +1,6 @@
+import type { BrowserWindowConstructorOptions, NativeImage } from 'electron'
 import { BrowserWindow, shell } from 'electron'
 import { join } from 'path'
-
-import type { NativeImage, BrowserWindowConstructorOptions } from 'electron'
 import type { DemanaProcessType } from '@root/types'
 import type { DemanaService } from '../types'
 
@@ -66,7 +65,7 @@ export default class ProcessService implements DemanaService {
 
             if (events) {
                 Object.entries(events)
-                    .filter(([_, eventCallback]) => eventCallback)
+                    .filter(([, eventCallback]) => eventCallback)
                     .forEach(([eventName, eventCallback]) => {
                         switch (eventName) {
                         case 'close':
@@ -121,6 +120,8 @@ export default class ProcessService implements DemanaService {
                     devTools: isDev
                 }
             })
+
+            workerProcess.excludedFromShownWindowsMenu = !isDev
 
             // HMR for renderer base on electron-vite cli.
             // Load the remote URL for development or the local html file for production.

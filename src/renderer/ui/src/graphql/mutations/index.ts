@@ -1,7 +1,7 @@
 import authentication from './authentication'
-import venue from './venue'
+import desktopApplication from './desktop-application'
 
 export default {
     authentication,
-    venue
+    'desktop-application': desktopApplication
 }

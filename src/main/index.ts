@@ -14,6 +14,9 @@ import TrayService from './services/trayService'
 import TranslationService from './services/translationService'
 import NotificationService from './services/notificationService'
 import ProcessService, { DemanaPreloadScriptPath } from './services/processService'
+import TicketService from './services/ticketService'
+
+import RabbitAmqpClient from './clients/rabbitAmqpClient'
 
 import { pushEventToProcess } from './utils/eventUtils'
 import { parseLocale } from './utils/i18nUtils'
@@ -49,7 +52,7 @@ function getOrCreateMainUiProcess(): BrowserWindow {
     const translationService = context.getServiceByName<TranslationService>('translation')
 
     if (!mainUiProcess || mainUiProcess.isDestroyed()) {
-        mainUiProcess = processService.createProcess('ui', {
+        mainUiProcess = context.registerProcess('ui', processService.createProcess('ui', {
             window: {
                 title: 'Main UI',
                 icon,
@@ -68,7 +71,7 @@ function getOrCreateMainUiProcess(): BrowserWindow {
                     }
                 }
             }
-        })
+        }))
     }
 
     return mainUiProcess
@@ -120,8 +123,9 @@ function initializeIpcHandlers(): void {
     ipcMain.on(
         'setPrintingConfiguration',
         (_event, printingConfiguration: DemanaPrintingConfiguration): void => {
+            console.log({printingConfiguration})
             context.getServiceByName<PrinterService>('printer').printingConfiguration =
-        printingConfiguration
+                printingConfiguration
         }
     )
 
@@ -142,7 +146,7 @@ function initializeIpcHandlers(): void {
         'getTemporaryData',
         (): Optional<DemanaTemporaryDataDto, 'redirectionRoute'> => {
             const { currentRouteName } =
-        context.getServiceByName<TemporaryDataService>('temporaryData').data
+                context.getServiceByName<TemporaryDataService>('temporaryData').data
 
             return {
                 redirectionRoute: currentRouteName
@@ -258,6 +262,27 @@ function initializeServices(): void {
         )
         .buildTrayContextMenu()
         .on('click', () => showMainUiProcess())
+
+    context.registerService('ticket', new TicketService())
+}
+
+async function initializeClients(): Promise<void> {
+    const {
+        VITE_RABBITMQ_HOST,
+        VITE_RABBITMQ_PORT,
+        VITE_RABBITMQ_USERNAME,
+        VITE_RABBITMQ_PASSWORD
+    } = context.getServiceByName<RuntimeConfigService>('runtimeConfig').runtimeConfig
+
+    const amqpClient = context.registerClient('amqp', new RabbitAmqpClient())
+    await amqpClient.connect({
+        connection: {
+            host: VITE_RABBITMQ_HOST,
+            port: VITE_RABBITMQ_PORT,
+            username: VITE_RABBITMQ_USERNAME,
+            password: VITE_RABBITMQ_PASSWORD
+        }
+    })
 }
 
 function showMainUiProcess(routeName?: string): void {
@@ -305,7 +330,7 @@ app.whenReady().then(async () => {
         optimizer.watchWindowShortcuts(window)
     })
 
-    mainWorkerProcess = processService.createProcess('worker', {
+    mainWorkerProcess = context.registerProcess('worker', processService.createProcess('worker', {
         mode: runtimeConfigService.isDev ? 'development' : 'production',
         window: {
             title: 'Main worker',
@@ -313,7 +338,7 @@ app.whenReady().then(async () => {
             icon,
             preload: DemanaPreloadScriptPath.WORKER
         }
-    })
+    }))
 
     mainWorkerProcess.on('close', (event) => {
         if (!isApplicationBeingClosed) {
@@ -324,28 +349,26 @@ app.whenReady().then(async () => {
     mainUiProcess = getOrCreateMainUiProcess()
 
     initializeServices()
+    await initializeClients()
+
+    await context.getServiceByName<TicketService>('ticket').startListeningForNewTickets()
 
     initializeIpcHandlers()
 
     mainUiProcess.setTitle(translationService.translate('globals.applicationName'))
-
-    // setInterval(
-    //   () => pushEventToProcess({ name: '@orders:new', value: 'test' }, mainWorkerProcess),
-    //   10 * 1000
-    // );
 
     if (runtimeConfigService.isDev) {
         try {
             await installExtension(VUEJS_DEVTOOLS)
             logger.debug('Vue devtools are installed!')
         } catch (exception) {
-            console.error('Failed to install Vue devtools', exception)
+            logger.debug('Failed to install Vue devtools', exception)
         }
     }
 
-    app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
+    app.on('activate', function() {
+        // On macOS it's common to re-create a window in the app when the
+        // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) {
             getOrCreateMainUiProcess()
         }
@@ -357,8 +380,10 @@ app.whenReady().then(async () => {
  * There, it's common for applications and their menu bar to stay active
  * until the user quits explicitly with Cmd + Q.
  */
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
     if (isApplicationBeingClosed) {
+        await context.getClientByName<RabbitAmqpClient>('amqp').closeAllQueueChannels()
+
         app.quit()
     }
 })

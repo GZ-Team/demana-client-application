@@ -1,8 +1,7 @@
+import type { JwtPayload } from 'jwt-decode'
 import { jwtDecode } from 'jwt-decode'
 
 import useLogger from './loggerUtils'
-
-import type { JwtPayload } from 'jwt-decode'
 
 const { logger } = useLogger({ service: 'Token utils' })
 
@@ -14,8 +13,12 @@ export function decodeJWT(token: string): JwtPayload {
     }
 }
 
-export function isExpiredJWT(token: string): boolean {
+export function isExpiredJWT(token?: string): boolean {
     try {
+        if (!token) {
+            throw new Error('no token provided')
+        }
+
         const { exp } = decodeJWT(token)
 
         if (!exp) {

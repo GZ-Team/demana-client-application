@@ -1,9 +1,10 @@
 import RuntimeConfigService from './runtimeConfigService'
+import ContextService from './contextService'
 
 import { getBrowserWindowByProcessId } from '../utils/processUtils'
 import useLogger from '../utils/loggerUtils'
 import { pushEventToProcess } from '../utils/eventUtils'
-import { isLocal } from '../utils/environmentUtils.ts'
+import { isLocal } from '../utils/environmentUtils'
 
 import type {
     BrowserWindow,
@@ -16,8 +17,9 @@ import type {
     USBDevice
 } from 'electron'
 import type { Logger } from 'winston'
-import type { DemanaEventName } from '../../types'
+import type { DemanaEventName, DemanaRequestHeaders } from '../../types'
 import type { DemanaService } from '../types'
+import type AppDataService from './appDataService'
 
 const ALLOWED_PERMISSIONS = ['usb', 'serial']
 
@@ -247,6 +249,18 @@ export default class SessionService extends RuntimeConfigService implements Dema
                 `Failed to end the session authentication: ${(exception as Error).message}`
             )
         }
+    }
+
+    async getHeaders(): Promise<DemanaRequestHeaders> {
+        return Object.entries({
+            authorization: await this.getAccessToken(),
+            'refresh-token': await this.getRefreshToken(),
+            'demana-client-id': ContextService.instance.getServiceByName<AppDataService>('app').appId
+        }).filter(([, value]) => value)
+            .reduce((headers, [name, value]) => ({
+                ...headers,
+                [name]: value
+            }), {} as DemanaRequestHeaders)
     }
 
     async getAccessToken(): Promise<Cookie | null> {

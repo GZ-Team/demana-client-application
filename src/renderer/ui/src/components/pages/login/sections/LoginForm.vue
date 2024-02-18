@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVuelidate } from '@vuelidate/core'
-import { required, email } from '@vuelidate/validators'
+import { email, required } from '@vuelidate/validators'
 import { useReCaptcha } from 'vue-recaptcha-v3'
 
 import { useAppStore } from '@ui/stores/appStore'
@@ -12,6 +12,7 @@ import { useVenueStore } from '@ui/stores/venueStore'
 
 import useTranslations from '@ui/composables/useTranslations'
 import useFeedback from '@ui/composables/useFeedback'
+import useLogger from '@ui/composables/useLogger'
 
 import type { LoginForm } from '@generated/graphql'
 
@@ -40,7 +41,7 @@ const { appId } = storeToRefs(appStore)
 const { venue } = storeToRefs(venueStore)
 
 const { login, getUser } = authStore
-const { registerDesktopApplication } = venueStore
+const { registerDesktopApplication } = authStore
 const { translate, createTranslatedValidator } = useTranslations('pages.login.sections.loginForm')
 const { clearNotifications } = useFeedback()
 
@@ -69,17 +70,22 @@ const errorMessages = computed(() =>
 
 const router = useRouter()
 const reCaptcha = useReCaptcha()
+const logger = useLogger({service: 'login-form'})
 
 async function handleLogin(): Promise<void> {
     clearNotifications()
 
     const isValid = await vuelidate.value.$validate()
 
-    loginForm.verification = await reCaptcha!.executeRecaptcha('desktop_login')
+    if (!reCaptcha || !reCaptcha.instance.value) {
+        logger.error('ReCaptcha is not available')
+        return
+    }
 
     if (isValid) {
         isProcessing.value = true
 
+        loginForm.verification = await reCaptcha.instance.value!.execute('desktop_login')
         // this.$cookies.remove(this.$config.accessTokenName);
         // this.$cookies.remove(this.$config.refreshTokenName);
 
@@ -105,6 +111,7 @@ async function handleLogin(): Promise<void> {
             } else if (venue.value!.paused) {
                 await router.push({ name: 'paused-subscription' })
             } else {
+                console.log('HERE')
                 await router.push({ path: '/configuration' })
             }
         }
@@ -112,7 +119,7 @@ async function handleLogin(): Promise<void> {
 }
 
 onMounted(async () => {
-    if (!reCaptcha?.isLoaded) {
+    if (reCaptcha && !reCaptcha.isLoaded) {
         await reCaptcha!.recaptchaLoaded()
     }
 })

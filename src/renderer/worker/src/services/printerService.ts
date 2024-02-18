@@ -11,8 +11,14 @@ export default class PrinterService {
             navigator.usb.getDevices()
         ])
 
+        console.log({selectedPrinterId, allUsbPrinters})
+
+        if (!selectedPrinterId) {
+            return null
+        }
+
         const selectedUsbPrinter = allUsbPrinters.find(
-            ({ productId }) => productId === selectedPrinterId
+            ({ productId }) => productId === parseInt(selectedPrinterId.toString())
         )
 
         if (!selectedUsbPrinter) {
@@ -22,13 +28,15 @@ export default class PrinterService {
         return new Printer(selectedUsbPrinter)
     }
 
-    async print(): Promise<void> {
+    async print(content): Promise<void> {
         try {
             const selectedPrinter = await this.getSelectedPrinter()
 
-            throw new Error('Printing is not implemented yet.', { cause: selectedPrinter })
+            if (!selectedPrinter) {
+                throw new Error('There is no selected printer.')
+            }
 
-            // await printer.printText('')
+            await selectedPrinter.printText(content)
         } catch (exception) {
             this.logger.warning(`Failed to print: ${(exception as Error).message}`)
         }

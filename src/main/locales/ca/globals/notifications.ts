@@ -33,9 +33,7 @@ export default {
     // TODO: Translate
         default: 'It worked!',
         authentication: {
-            'login-success': 'Benvingut!'
-        },
-        venue: {
+            'login-success': 'Benvingut!',
             // TODO: Translate
             'register-desktop-application': 'This application was successfully attached to your Demana account!'
         }

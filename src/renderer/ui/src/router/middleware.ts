@@ -19,6 +19,8 @@ function beforeEach(router: Router) {
         const { isLoggedIn } = storeToRefs(authStore)
         const { logout } = authStore
 
+        console.log({isLoggedIn: isLoggedIn.value})
+
         if (!to.meta.$public && !isLoggedIn.value) {
             logout()
             return { name: loginPageRoute.name, replace: true } as RouteLocationRaw

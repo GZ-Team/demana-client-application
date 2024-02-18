@@ -6,14 +6,10 @@ const printerService = new PrinterService()
 
 const logger = useLogger({ service: 'Main' })
 
-window.api['@orders:new'](async () => {
-    await printerService.print()
-})
+console.log({printer: await printerService.getSelectedPrinter()})
 
-window.api['@messages:new'](async (message) => {
-    if (message.target === 'worker' && message.content === 'test-printer') {
-        await printerService.print()
-    }
+window.api['@orders:new'](async (message) => {
+    await printerService.print(message as string)
 })
 
 window.api['@session:authenticated'](async (authenticated) => {

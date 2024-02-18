@@ -3,26 +3,27 @@ import { useCookies } from '@vueuse/integrations/useCookies'
 import BackofficeGraphQLClient from '../clients/backofficeClient'
 
 import { useAuthStore } from '../stores/authStore'
+import { useAppStore } from '../stores/appStore'
 
 import useLogger from './useLogger'
 
 import { isDev } from '../utils/globals'
 import { decodeJWT } from '../utils/tokenUtils'
 
-import type { DemanaRequestHeaders, Optional } from '@root/types.ts'
-import {
+import type { DemanaRequestHeaders, Optional } from '@root/types'
+import type {
     DemanaApiRequestFeedback,
     DemanaGraphQLMutationOptions,
     DemanaGraphQLQueryOptions
 } from '@ui/utils/graphQlUtils'
 
 type useGraphQlValue = {
-  query: <T>(
-    options: Optional<DemanaGraphQLQueryOptions<T>, 'logger'>
-  ) => Promise<DemanaApiRequestFeedback<T>>;
-  mutate: <T>(
-    options: Optional<DemanaGraphQLMutationOptions<T>, 'logger'>
-  ) => Promise<DemanaApiRequestFeedback<T>>;
+    query: <T>(
+        options: Optional<DemanaGraphQLQueryOptions<T>, 'logger'>
+    ) => Promise<DemanaApiRequestFeedback<T>>;
+    mutate: <T>(
+        options: Optional<DemanaGraphQLMutationOptions<T>, 'logger'>
+    ) => Promise<DemanaApiRequestFeedback<T>>;
 };
 
 let client: BackofficeGraphQLClient | null = null
@@ -30,7 +31,7 @@ let client: BackofficeGraphQLClient | null = null
 export default function useGraphQl(): useGraphQlValue {
     const {
         VITE_ACCESS_TOKEN_NAME: accessTokenName,
-        VITE_DEMANA_REFRESH_TOKEN_NAME: refreshTokenName
+        VITE_REFRESH_TOKEN_NAME: refreshTokenName
     } = import.meta.env
 
     const logger = useLogger({ service: 'useGraphQl' })
@@ -38,16 +39,20 @@ export default function useGraphQl(): useGraphQlValue {
     function getCookie(key: string): string {
         const cookies = useCookies([key])
 
-        console.log({cookie: cookies.get(key), key})
+        console.log({ cookie: cookies.get(key), key })
 
         return cookies.get(key)
     }
 
     function getRequestHeaders(): DemanaRequestHeaders {
-        return {
+        return Object.entries({
             authorization: getCookie(accessTokenName),
-            'refresh-token': getCookie(refreshTokenName)
-        }
+            'refresh-token': getCookie(refreshTokenName),
+            'demana-client-id': useAppStore().appId
+        } as DemanaRequestHeaders).filter(([, value]) => value).reduce((headers, [name, value]) => ({
+            ...headers,
+            [name]: value
+        }), {} as DemanaRequestHeaders)
     }
 
     function isExpiredJWT(token: string): boolean {

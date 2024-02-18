@@ -174,7 +174,8 @@ export interface DemanaLogger {
 
 export type DemanaRequestHeaders = {
   authorization?: string;
-  'refresh-token'?: string;
+    'refresh-token'?: string;
+  'demana-client-id'?: string;
 };
 
 export type Paths<T> = T extends object

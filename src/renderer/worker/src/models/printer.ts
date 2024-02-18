@@ -1,13 +1,14 @@
-import { EscPosScript } from '@gz-team/esc-pos'
 
-import { stringToBytes } from '../utils/printerUtils'
 
 export class Printer {
     constructor(private device: USBDevice) {}
 
-    async printText(text: string): Promise<USBOutTransferResult> {
+    async printText(text): Promise<USBOutTransferResult> {
         try {
-            const textBytes = new Uint8Array(stringToBytes(text))
+            // const textBytes = new Uint8Array(stringToBytes(text))
+            // const textBuffer = Buffer.from(text, 'utf8')
+
+            console.log({ text })
             const {
                 printerConfiguration,
                 printerInterface,
@@ -18,9 +19,9 @@ export class Printer {
             await this.device.selectConfiguration(printerConfiguration.configurationValue)
             await this.device.claimInterface(printerInterface.interfaceNumber)
 
-            const script = new EscPosScript().printText('Demana').complete()
+            // const script = new EscPosScript().printText('Demana').complete()
 
-            console.log({ script, textBytes })
+            // console.log({ script, textBytes })
 
             // let test = new Uint8Array(10 + new TextEncoder().encode("Demana").length)
 
@@ -40,7 +41,7 @@ export class Printer {
             //     value: 0
             // }, textBytes.length)
 
-            const result = await this.device.transferOut(endpointNumber, script)
+            const result = await this.device.transferOut(endpointNumber, text)
 
             await this.device.releaseInterface(printerInterface.interfaceNumber)
 

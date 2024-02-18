@@ -13,10 +13,9 @@ import {
     handleGraphQlQuery
 } from '../utils/graphQlUtils'
 
-import type { NormalizedCacheObject, GraphQLRequest } from '@apollo/client'
+import type { GraphQLRequest, NormalizedCacheObject } from '@apollo/client'
 import type { NetworkError } from '@apollo/client/errors'
-import type { DemanaRequestHeaders } from '@root/types'
-import type { DemanaLogger } from '@root/types.ts'
+import type { DemanaLogger, DemanaRequestHeaders } from '@root/types'
 
 type DemanaNetworkError = NetworkError & {
   statusCode?: number;
@@ -58,7 +57,7 @@ export default class BackofficeGraphQLClient {
                 return await options.context.headers(request)
             } catch (exception) {
                 this.logger.error(`Failed to set context: ${(exception as Error).message}`)
-                return { headers: await options.context.headers(request) }
+                return options.context.headers(request)
             }
         })
 
