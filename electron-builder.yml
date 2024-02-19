@@ -18,6 +18,10 @@ asarUnpack:
 afterSign: build/notarize.js
 win:
   executableName: demana-client-application
+  protocols:
+    - name: Demana Desktop
+      schemes:
+        - demana-desktop
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -30,6 +34,10 @@ mac:
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  protocols:
+    - name: Demana Desktop
+      schemes:
+        - demana-desktop
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
@@ -39,9 +47,10 @@ linux:
     - deb
   maintainer: demana.digital
   category: Utility
+  protocols:
+    - name: Demana Desktop
+      schemes:
+        - demana-desktop
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://demana.digital/auto-updates

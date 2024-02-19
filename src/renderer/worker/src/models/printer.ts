@@ -1,5 +1,3 @@
-
-
 export class Printer {
     constructor(private device: USBDevice) {}
 

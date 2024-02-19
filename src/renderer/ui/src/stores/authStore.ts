@@ -57,7 +57,7 @@ export const useAuthStore = defineStore('authStore', {
                     successMessage: 'success.authentication.login-success'
                 })
             } catch (exception) {
-                throw new Error(`Failed to logout: ${(exception as Error).message}`, { cause: exception })
+                throw new Error(`Failed to login: ${(exception as Error).message}`, { cause: exception })
             }
         },
         async refresh(): Promise<void> {
@@ -113,6 +113,8 @@ export const useAuthStore = defineStore('authStore', {
 
                     if (venue) {
                         useVenueStore().venue = venue
+
+                        window.api.setVenueId(venue.id!)
 
                         if (!useAppStore().appId && venue.configuration && venue.configuration.venuePrinterConfiguration) {
                             const { automatic, paperMargin, paperWidth } = venue.configuration.venuePrinterConfiguration

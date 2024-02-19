@@ -1,0 +1,7 @@
+mutation savePrinterConfiguration($printerConfigurationForm: PrinterConfigurationForm) {
+    savePrinterConfiguration(printerConfigurationForm: $printerConfigurationForm) {
+        automatic
+        paperWidth
+        paperMargin
+    }
+}

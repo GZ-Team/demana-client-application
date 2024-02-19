@@ -5,12 +5,16 @@
   "main": "./out/main/index.js",
   "author": "Demana Team",
   "homepage": "https://www.demana.digital",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GZ-Team/demana-client-application.git"
+  },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "postinstall": "electron-builder install-app-deps",
     "dev": "electron-vite dev",
     "dev:watch": "electron-vite dev --watch",
-    "preview": "electron-vite preview",
+    "preview": "electron-vite preview -m dev",
     "test": "pnpm test:jest && pnpm test:playwright",
     "test:jest": "jest",
     "test:playwright": "pnpm exec playwright test",
@@ -20,11 +24,14 @@
     "build:windows": "pnpm run build && electron-builder --win --config",
     "build:mac": "pnpm run build && electron-builder --mac --config",
     "build:linux": "pnpm run build && electron-builder --linux --config",
+    "prepublish": "pnpm run build:windows",
+    "publish": "electron-builder --win -p always",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue",
     "lint:fix": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
     "type-check": "tsc --noEmit -p tsconfig.json --composite false"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@apollo/client": "^3.9.4",
     "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/utils": "^3.0.0",
@@ -39,9 +46,7 @@
     "vite-plugin-vuetify": "^2.0.1",
     "vue-i18n": "^9.9.1",
     "vue-router": "^4.2.5",
-    "vuetify": "^3.5.3"
-  },
-  "devDependencies": {
+    "vuetify": "^3.5.3",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@electron/notarize": "^2.2.1",
     "@graphql-codegen/cli": "^5.0.2",

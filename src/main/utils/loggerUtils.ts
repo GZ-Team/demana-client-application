@@ -63,7 +63,7 @@ export default function useLogger(options?: { service: string; isMainProcess?: b
                 filename: '%DATE%.log',
                 dirname: logFilePath,
                 datePattern: 'YYYYMMDD',
-                maxFiles: '14d',
+                maxFiles: '10d',
                 format: combine(timestamp(), label({ label: serviceName }), json(), prettyPrint()),
                 level: 'info'
             })

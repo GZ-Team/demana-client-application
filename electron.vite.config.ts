@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { defineConfig, externalizeDepsPlugin, bytecodePlugin } from 'electron-vite'
+import { defineConfig, externalizeDepsPlugin, bytecodePlugin, splitVendorChunkPlugin  } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
 import graphqlLoader from 'vite-plugin-graphql-loader'
@@ -7,7 +7,12 @@ import codegen from 'vite-plugin-graphql-codegen'
 
 export default defineConfig({
     main: {
-        plugins: [externalizeDepsPlugin(), bytecodePlugin(), graphqlLoader(), codegen()]
+        plugins: [
+            externalizeDepsPlugin(),
+            bytecodePlugin(),
+            codegen({ throwOnStart: false, throwOnBuild: false }),
+            splitVendorChunkPlugin()
+        ]
     },
     preload: {
         build: {
@@ -19,7 +24,11 @@ export default defineConfig({
                 }
             }
         },
-        plugins: [externalizeDepsPlugin(), bytecodePlugin()]
+        plugins: [
+            externalizeDepsPlugin(),
+            bytecodePlugin(),
+            splitVendorChunkPlugin()
+        ]
     },
     renderer: {
         server: {
@@ -49,7 +58,8 @@ export default defineConfig({
             // https://www.npmjs.com/package/vite-plugin-vuetify
             vuetify({ autoImport: true }),
             bytecodePlugin(),
-            graphqlLoader()
+            graphqlLoader(),
+            splitVendorChunkPlugin()
         ]
     }
 })

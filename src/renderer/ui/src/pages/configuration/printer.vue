@@ -10,7 +10,7 @@ import useTranslations from '@ui/composables/useTranslations'
 import useFeedback from '@ui/composables/useFeedback'
 
 const printerStore = usePrinterStore()
-const { usbPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore)
+const { usbPrinters, serialPrinters, selectedPrinter, printingConfiguration } = storeToRefs(printerStore)
 
 const inputLimits = {
     paperWidth: {
@@ -35,12 +35,24 @@ const localPrinterConfiguration = reactive<{
     paperMargin: null
 })
 
-const printersAsOptions = computed(() =>
-//TODO: show serial printers too
+const serialPrintersAsOptions = computed(() =>
+    serialPrinters.value
+        .map(port => port.getInfo())
+        .map(({ productId, product }) => ({
+            key: productId,
+            label: product?.replaceAll('\u0000', '')
+        }))
+)
+
+const usbPrintersAsOptions = computed(() =>
     usbPrinters.value.map(({ productId, productName }) => ({
         key: productId,
         label: productName?.replaceAll('\u0000', '')
     }))
+)
+
+const printersAsOptions = computed(() =>
+    [...usbPrintersAsOptions.value]
 )
 
 const computedSelectedPrinterId = computed({
@@ -48,7 +60,7 @@ const computedSelectedPrinterId = computed({
         return localSelectedPrinterId.value ?? selectedPrinter.value?.productId
     },
     set(newPrinterId) {
-        console.log({newPrinterId})
+        console.log({ newPrinterId })
         localSelectedPrinterId.value = `${newPrinterId}`
     }
 })
@@ -144,6 +156,7 @@ const errorMessages = computed(() =>
 )
 
 const {
+    loadSelectedPrinterId,
     loadAllPrinters,
     loadPrintingConfiguration,
     updateSelectedPrinterId,
@@ -174,21 +187,23 @@ async function handleSavePrintingConfiguration() {
 async function handleDeletePrinter() {
     await updateSelectedPrinterId(null)
 
-    const feedback = {
+    useFeedback({
+        success: true,
         message: 'success.venue.delete-venue-printer'
-    }
+    })
 }
 
 async function handleTest(): Promise<void> {
     await testPrintingConfiguration()
 }
 
-function goBack(): void {}
+function goBack(): void {
+}
 
 onMounted(async () => {
-    await Promise.all([loadAllPrinters(), loadPrintingConfiguration()])
+    await Promise.all([loadAllPrinters(), loadSelectedPrinterId(), loadPrintingConfiguration()])
 
-    console.log({ printers: usbPrinters.value})
+    console.log({ printers: usbPrinters.value })
 
     if (printingConfiguration.value) {
         const { automatic, paperMargin, paperWidth } = printingConfiguration.value
@@ -253,7 +268,11 @@ onMounted(async () => {
                 rounded
                 dense
                 variant="solo"
-              />
+              >
+                <template #selection="{index}">
+                  {{ printersAsOptions[index].label }}
+                </template>
+              </v-select>
             </v-col>
           </v-row>
         </v-container>

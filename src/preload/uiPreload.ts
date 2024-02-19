@@ -9,6 +9,7 @@ export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   // APP DATA
   getAppId: () => Promise<string>;
   setAppId: (appId: string) => void;
+  setVenueId: (venueId: string) => void;
   // PRINTING
   setSelectedPrinter: (printerId: string | number | null) => void;
   setPrintingConfiguration: (printingConfiguration: DemanaPrintingConfiguration) => void;
@@ -26,6 +27,7 @@ const uiPreloadApi: DemanaUiProcessPreloadApi = {
     // APP DATA
     getAppId: () => ipcRenderer.invoke('getAppId'),
     setAppId: (appId) => ipcRenderer.send('setAppId', appId),
+    setVenueId: (venueId) => ipcRenderer.send('setVenueId', venueId),
     // PRINTING
     setSelectedPrinter: (printerId) => ipcRenderer.send('setSelectedPrinter', printerId),
     setPrintingConfiguration: (printingConfiguration) =>

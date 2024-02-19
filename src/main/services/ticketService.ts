@@ -7,6 +7,8 @@ import type { Channel, ConsumeMessage } from 'amqplib'
 import type { Logger } from 'winston'
 import type RabbitAmqpClient from '../clients/rabbitAmqpClient'
 import type { DemanaService } from '../types'
+import AppDataService from '@root/main/services/appDataService'
+import SessionService from '@root/main/services/sessionService'
 
 export default class TicketService implements DemanaService {
     private logger: Logger
@@ -21,18 +23,26 @@ export default class TicketService implements DemanaService {
         this.amqpTicketChannel = await ContextService.instance.getClientByName<RabbitAmqpClient>('amqp').registerQueueChannel('tickets')
 
         await this.amqpTicketChannel.consume('tickets', (message: ConsumeMessage | null): void => {
-            this.logger.info('Received a new ticket event!')
-
             if (message != null) {
-                this.logger.info('Processing the message...')
-                console.log('Received a new print event', { message })
-
                 message = {
                     ...message,
                     content: JSON.parse(new TextDecoder().decode(message.content))
                 }
 
-                pushEventToProcess({name: '@orders:new', value: Buffer.from(message.content.body)}, ContextService.instance.getProcessByName('worker'))
+                const venueId = ContextService.instance.getServiceByName<SessionService>('session').venueId
+
+                if (!venueId || !message.content.venueId || message.content.venueId != venueId) {
+                    this.logger.error('The message was rejected.')
+                    return
+                }
+
+                this.logger.info('Received a new ticket event!')
+                this.logger.info('Processing the message...')
+
+                pushEventToProcess({
+                    name: '@orders:new',
+                    value: Buffer.from(message.content.body)
+                }, ContextService.instance.getProcessByName('worker'))
 
                 this.amqpTicketChannel!.ack(message)
             } else {

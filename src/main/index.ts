@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+
+import handleUpdates from './updater'
 
 import AppDataService from './services/appDataService'
 import ContextService from './services/contextService'
@@ -38,6 +40,7 @@ import demanaLogo from '../../resources/demana.png'
 const { logger } = useLogger()
 
 let isApplicationBeingClosed = false
+const demanaDesktopProtocol = 'demana-desktop'
 const icon = nativeImage.createFromDataURL(demanaLogo)
 
 const context: ContextService = ContextService.instance
@@ -85,6 +88,10 @@ function initializeIpcHandlers(): void {
 
     ipcMain.on('setAppId', (_event, appId: string): void => {
         context.getServiceByName<AppDataService>('app').appId = appId
+    })
+
+    ipcMain.on('setVenueId', (_event, venueId: string): void => {
+        context.getServiceByName<SessionService>('session').venueId = venueId
     })
 
     // MESSAGES
@@ -305,16 +312,17 @@ function showMainUiProcess(routeName?: string): void {
     }
 }
 
-function beforeApplicationExit(): void {
+async function beforeApplicationExit(): Promise<void> {
     isApplicationBeingClosed = true
+
+    const rabbitAmpqClientExists =  context.hasClientByName('amqp')
+
+    if (rabbitAmpqClientExists) {
+        await context.getClientByName<RabbitAmqpClient>('amqp').closeAllQueueChannels()
+    }
 }
 
-/**
- * This method will be called when Electron has finished
- * initialization and is ready to create browser windows.
- * Some APIs can only be used after this event occurs.
- */
-app.whenReady().then(async () => {
+async function startApplication(): Promise<void> {
     const processService = context.registerService('process', new ProcessService())
     const runtimeConfigService = context.registerService('runtimeConfig', new RuntimeConfigService())
     const translationService = context.registerService('translation', new TranslationService())
@@ -373,7 +381,50 @@ app.whenReady().then(async () => {
             getOrCreateMainUiProcess()
         }
     })
+}
+
+process.on('uncaughtException', (error) => {
+    logger.error(`An uncaught exception occured: ${error.message}`)
 })
+
+if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient(demanaDesktopProtocol, process.execPath, [resolve(process.argv[1])])
+    }
+} else {
+    app.setAsDefaultProtocolClient(demanaDesktopProtocol)
+}
+
+handleUpdates(app)
+
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+    app.quit()
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        const mainUiProcessExists = context.hasProcessByName('ui')
+
+        if (mainUiProcessExists) {
+            const mainUiProcess = context.getProcessByName('ui')
+
+            if (mainUiProcess.isMinimized()) {
+                mainUiProcess.restore()
+            }
+
+            mainUiProcess.focus()
+        }
+    })
+
+    app.whenReady().then(async () => await startApplication())
+}
+
+/**
+ * This method will be called when Electron has finished
+ * initialization and is ready to create browser windows.
+ * Some APIs can only be used after this event occurs.
+ */
+app.whenReady().then(async () => await startApplication())
 
 /**
  * Hides the main window, except on macOS.
@@ -382,8 +433,6 @@ app.whenReady().then(async () => {
  */
 app.on('window-all-closed', async () => {
     if (isApplicationBeingClosed) {
-        await context.getClientByName<RabbitAmqpClient>('amqp').closeAllQueueChannels()
-
         app.quit()
     }
 })
@@ -391,6 +440,20 @@ app.on('window-all-closed', async () => {
 /**
  * Actions done before ending the application.
  */
-app.on('before-quit', () => {
-    beforeApplicationExit()
+app.on('before-quit', async () => {
+    await beforeApplicationExit()
+})
+
+app.on('open-url', (event, url) => {
+    const mainUiProcessExists = context.hasProcessByName('ui')
+
+    if (mainUiProcessExists) {
+        const mainUiProcess = context.getProcessByName('ui')
+
+        if (mainUiProcess.isMinimized()) {
+            mainUiProcess.restore()
+        }
+
+        mainUiProcess.focus()
+    }
 })

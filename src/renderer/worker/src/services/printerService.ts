@@ -6,9 +6,10 @@ export default class PrinterService {
     private logger = useLogger({ service: 'PrinterService' })
 
     async getSelectedPrinter(): Promise<Printer | null> {
-        const [selectedPrinterId, allUsbPrinters] = await Promise.all([
+        const [selectedPrinterId, allUsbPrinters, allSerialPrinters] = await Promise.all([
             window.api.getSelectedPrinter(),
-            navigator.usb.getDevices()
+            navigator.usb.getDevices(),
+            navigator.serial.getPorts()
         ])
 
         console.log({selectedPrinterId, allUsbPrinters})
@@ -20,6 +21,12 @@ export default class PrinterService {
         const selectedUsbPrinter = allUsbPrinters.find(
             ({ productId }) => productId === parseInt(selectedPrinterId.toString())
         )
+
+        const selectedSerialPrinter = allSerialPrinters
+            .map(port => port.getInfo())
+            .find(({productId}) => productId === selectedPrinterId.toString())
+
+        const selectedPrinter = selectedUsbPrinter ?? selectedSerialPrinter
 
         if (!selectedUsbPrinter) {
             return null
@@ -35,6 +42,8 @@ export default class PrinterService {
             if (!selectedPrinter) {
                 throw new Error('There is no selected printer.')
             }
+
+            console.log(content)
 
             await selectedPrinter.printText(content)
         } catch (exception) {

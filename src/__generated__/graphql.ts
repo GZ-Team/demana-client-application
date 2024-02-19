@@ -230,6 +230,7 @@ export type Mutation = {
   saveMenuCategory?: Maybe<MenuCategoryDto>;
   saveMenuSectionTranslation?: Maybe<Feedback>;
   saveMenuSubcategory?: Maybe<MenuSubcategoryDto>;
+  savePrinterConfiguration?: Maybe<VenuePrinterConfigurationDto>;
   saveProduct?: Maybe<ProductDto>;
   saveProductProperty?: Maybe<ProductPropertyDto>;
   saveQrCode?: Maybe<TableDto>;
@@ -371,6 +372,11 @@ export type MutationSaveMenuSectionTranslationArgs = {
 
 export type MutationSaveMenuSubcategoryArgs = {
   menuSubcategory?: InputMaybe<MenuSubcategoryForm>;
+};
+
+
+export type MutationSavePrinterConfigurationArgs = {
+  printerConfigurationForm?: InputMaybe<PrinterConfigurationForm>;
 };
 
 
@@ -604,6 +610,12 @@ export enum PriceStatus {
   Active = 'ACTIVE',
   Paused = 'PAUSED'
 }
+
+export type PrinterConfigurationForm = {
+  automatic?: InputMaybe<Scalars['Boolean']['input']>;
+  paperMargin?: InputMaybe<Scalars['Float']['input']>;
+  paperWidth?: InputMaybe<Scalars['Float']['input']>;
+};
 
 export type ProductDto = {
   __typename?: 'ProductDto';

@@ -34,6 +34,8 @@ export default class SessionService extends RuntimeConfigService implements Dema
     private grantedDeviceThroughPermHandler: SerialPort | USBDevice | null = null
     private refreshingAuthentication = false
 
+    venueId: string | null = null
+
     constructor(uiProcessId: number, workerProcessId: number) {
         super()
 

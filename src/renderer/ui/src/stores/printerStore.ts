@@ -4,11 +4,12 @@ import useGraphQl from '@ui/composables/useGraphQl'
 
 import type { DemanaPrintingConfiguration } from '@root/types'
 import type { DemanaApiRequestFeedback } from '@ui/utils/graphQlUtils'
+import type { AuthenticationFeedback, PrinterConfigurationForm } from '@generated/graphql'
 
 type StoreState = {
   usbPrinters: Array<USBDevice>;
   serialPrinters: Array<SerialPort>;
-  selectedPrinter: USBDevice | null;
+  selectedPrinterId: string | number | null;
   printingConfiguration: DemanaPrintingConfiguration | null;
 };
 
@@ -16,9 +17,13 @@ export const usePrinterStore = defineStore('printerStore', {
     state: (): StoreState => ({
         usbPrinters: [],
         serialPrinters: [],
-        selectedPrinter: null,
+        selectedPrinterId: null,
         printingConfiguration: null
     }),
+
+    getters: {
+        selectedPrinter: ({usbPrinters, selectedPrinterId}) => selectedPrinterId ? usbPrinters.find(({productId}) => productId === parseInt(`${selectedPrinterId}`)) : null
+    },
 
     actions: {
         async loadAllUsbPrinters(): Promise<void> {
@@ -74,7 +79,8 @@ export const usePrinterStore = defineStore('printerStore', {
         },
         async loadSelectedPrinterId(): Promise<string | number | null> {
             try {
-                return await window.api.getSelectedPrinter()
+                this.selectedPrinterId = await window.api.getSelectedPrinter()
+                return this.selectedPrinterId
             } catch (exception) {
                 throw new Error(`Failed to load the selected printer ID: ${(exception as Error).message}`, {
                     cause: exception
@@ -105,11 +111,24 @@ export const usePrinterStore = defineStore('printerStore', {
                 )
             }
         },
+        async savePrinterConfigurationToBackoffice(printerConfigurationForm: PrinterConfigurationForm) {
+            try {
+                return await useGraphQl().mutate<AuthenticationFeedback>({
+                    mutation: 'desktop-application.savePrinterConfiguration',
+                    variables: { printerConfigurationForm },
+                    key: 'savePrinterConfiguration',
+                    successMessage: 'success.printer-configuration.save-success'
+                })
+            } catch (exception) {
+                throw new Error(`Failed to save the printer configuration to the backoffice: ${(exception as Error).message}`, { cause: exception })
+            }
+        },
         async updatePrintingConfiguration(
             newPrintingConfiguration: DemanaPrintingConfiguration
         ): Promise<DemanaPrintingConfiguration> {
             try {
                 window.api.setPrintingConfiguration(newPrintingConfiguration)
+                await this.savePrinterConfigurationToBackoffice(newPrintingConfiguration as PrinterConfigurationForm)
                 return this.loadPrintingConfiguration()
             } catch (exception) {
                 throw new Error(
