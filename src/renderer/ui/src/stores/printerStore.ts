@@ -127,7 +127,7 @@ export const usePrinterStore = defineStore('printerStore', {
             newPrintingConfiguration: DemanaPrintingConfiguration
         ): Promise<DemanaPrintingConfiguration> {
             try {
-                window.api.setPrintingConfiguration(newPrintingConfiguration)
+                window.api.setPrintingConfiguration(JSON.stringify(newPrintingConfiguration))
                 await this.savePrinterConfigurationToBackoffice(newPrintingConfiguration as PrinterConfigurationForm)
                 return this.loadPrintingConfiguration()
             } catch (exception) {

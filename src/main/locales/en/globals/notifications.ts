@@ -27,6 +27,9 @@ export default {
         authentication: {
             'login-success': 'Welcome back!',
             'register-desktop-application': 'This application was successfully attached to your Demana account!'
+        },
+        'printer-configuration': {
+            'save-success': 'Your ticket printer has been saved!'
         }
     }
 }

@@ -3,7 +3,7 @@ import { ipcRenderer } from 'electron'
 import { sharedPreloadApi, attachApisToProcess } from './sharedPreload'
 
 import type { DemanaSharedPreloadApi } from './sharedPreload'
-import type { DemanaPreferences, DemanaPrintingConfiguration, Optional } from '@root/types'
+import type { DemanaPreferences, Optional } from '@root/types'
 
 export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   // APP DATA
@@ -12,7 +12,7 @@ export type DemanaUiProcessPreloadApi = DemanaSharedPreloadApi & {
   setVenueId: (venueId: string) => void;
   // PRINTING
   setSelectedPrinter: (printerId: string | number | null) => void;
-  setPrintingConfiguration: (printingConfiguration: DemanaPrintingConfiguration) => void;
+  setPrintingConfiguration: (printingConfiguration: string) => void;
   // PREFERENCES
   setPreferences: (preferencesUpdate: Optional<DemanaPreferences, 'language'>) => void;
   // APP BEHAVIOUR

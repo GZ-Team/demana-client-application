@@ -15,13 +15,29 @@ let isRedirecting = false
 function beforeEach(router: Router) {
     router.beforeEach(async (to, _from): Promise<NavigationGuardReturn> => {
         const authStore = useAuthStore()
+        const appStore = useAppStore()
 
-        const { isLoggedIn } = storeToRefs(authStore)
-        const { logout } = authStore
+        const { isLoggedIn, user } = storeToRefs(authStore)
+        const { logout, getUser } = authStore
+
+        const {appId} = storeToRefs(appStore)
+        const {getAppId} = appStore
+
+        console.log('HERE!')
 
         if (!to.meta.$public && !isLoggedIn.value) {
-            logout()
+            await logout()
             return { name: loginPageRoute.name, replace: true } as RouteLocationRaw
+        }
+
+        console.log('HERE 2!')
+
+        if (isLoggedIn.value && !user.value) {
+            await getUser()
+        }
+
+        if (isLoggedIn.value && !appId.value) {
+            await getAppId()
         }
 
         const { loadTemporaryData } = useAppStore()

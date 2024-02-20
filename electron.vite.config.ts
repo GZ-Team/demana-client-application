@@ -57,7 +57,6 @@ export default defineConfig({
             vue(),
             // https://www.npmjs.com/package/vite-plugin-vuetify
             vuetify({ autoImport: true }),
-            bytecodePlugin(),
             graphqlLoader(),
             splitVendorChunkPlugin()
         ]

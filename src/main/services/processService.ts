@@ -55,7 +55,7 @@ export default class ProcessService implements DemanaService {
                 webPreferences: {
                     ...this.commonProcessProperties.webPreferences,
                     preload: join(__dirname, window.preload),
-                    devTools: isDev
+                    devTools: true
                 }
             })
 
@@ -89,7 +89,7 @@ export default class ProcessService implements DemanaService {
                 uiProcess.loadFile(window.content)
             }
 
-            if (isDev) {
+            if (true) {
                 uiProcess.webContents.openDevTools()
             } else {
                 // Menu.setApplicationMenu(null)

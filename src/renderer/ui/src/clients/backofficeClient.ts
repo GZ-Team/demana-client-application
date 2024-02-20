@@ -63,7 +63,12 @@ export default class BackofficeGraphQLClient {
 
         const onErrorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
             if (graphQLErrors) {
-                this.logger.error('GRAPHQL ERROR', graphQLErrors)
+
+                this.logger.error(`${graphQLErrors.length} GraphQL ${graphQLErrors.length === 1 ? 'error' : 'errors'} occurred during the GraphQL operation '${operation.operationName}':`)
+
+                graphQLErrors.forEach((error, errorIndex) => {
+                    this.logger.error(`GraphQL error ${errorIndex + 1}: ${error.message}`)
+                })
 
                 const hasAccessDenied = !!graphQLErrors.find(({ extensions: { status } }) =>
                     [401].includes(status as number)

@@ -1,15 +1,19 @@
 import { defineStore } from 'pinia'
-import { useCookies } from '@vueuse/integrations/useCookies'
+import { cloneDeep } from 'lodash'
 
 import { useAppStore } from '@ui/stores/appStore'
 import { useVenueStore } from '@ui/stores/venueStore'
 import { usePrinterStore } from '@ui/stores/printerStore'
 
 import useGraphQl from '@ui/composables/useGraphQl'
+import useLocalStorage from '@ui/composables/useLocalStorage'
+import useLogger from '@ui/composables/useLogger'
+
+import { isNil } from '../../../../main/utils/sharedUtils'
 
 import type { AuthenticationFeedback, LoginForm, UserDto } from '@generated/graphql'
-import { isNil } from '../../../../main/utils/sharedUtils'
-import { DemanaApiRequestFeedback } from '@ui/utils/graphQlUtils'
+import type { DemanaApiRequestFeedback } from '@ui/utils/graphQlUtils'
+
 
 type StoreState = {
   user: UserDto | null;
@@ -26,7 +30,7 @@ export const useAuthStore = defineStore('authStore', {
     }),
 
     getters: {
-        isLoggedIn: (): boolean => !!useCookies([accessTokenName]).get(accessTokenName) && !!useAppStore().appId
+        isLoggedIn: (): boolean => !!useLocalStorage().getItem(accessTokenName) && !!useAppStore().appId
     },
 
     actions: {
@@ -41,17 +45,18 @@ export const useAuthStore = defineStore('authStore', {
                             return
                         }
 
+                        const logger = useLogger({service: 'login-request'})
+
                         const { token, refreshToken } = data
 
                         if (token?.value && refreshToken?.value) {
-                            const cookies = useCookies([accessTokenName, refreshTokenName])
+                            const localStorage = useLocalStorage()
 
-                            cookies.set(accessTokenName, token.value, {
-                                expires: new Date(token.expirationDate!)
-                            })
-                            cookies.set(refreshTokenName, refreshToken.value, {
-                                expires: new Date(refreshToken.expirationDate!)
-                            })
+                            localStorage.setItem(accessTokenName, token.value)
+                            logger.info(`Setting the token '${accessTokenName}' with the value '${localStorage.getItem(accessTokenName)}'`)
+
+                            localStorage.setItem(refreshTokenName, refreshToken.value)
+                            logger.info(`Setting the token '${refreshTokenName}' with the value '${localStorage.getItem(refreshTokenName)}'`)
                         }
                     },
                     successMessage: 'success.authentication.login-success'
@@ -81,9 +86,6 @@ export const useAuthStore = defineStore('authStore', {
                         }
 
                         await useAppStore().setAppId(data)
-
-                        const cookies = useCookies([accessTokenName])
-                        cookies.remove(accessTokenName)
                     },
                 })
             } catch (exception) {
@@ -107,14 +109,14 @@ export const useAuthStore = defineStore('authStore', {
                 })
 
                 if (data) {
-                    const { venue, ...userProperties } = data
+                    const { venue, ...userProperties } = cloneDeep(data)
 
                     this.user = userProperties
 
                     if (venue) {
                         useVenueStore().venue = venue
 
-                        window.api.setVenueId(venue.id!)
+                        window.api.setVenueId(venue.id)
 
                         if (!useAppStore().appId && venue.configuration && venue.configuration.venuePrinterConfiguration) {
                             const { automatic, paperMargin, paperWidth } = venue.configuration.venuePrinterConfiguration

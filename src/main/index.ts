@@ -129,10 +129,10 @@ function initializeIpcHandlers(): void {
 
     ipcMain.on(
         'setPrintingConfiguration',
-        (_event, printingConfiguration: DemanaPrintingConfiguration): void => {
+        (_event, printingConfiguration: string): void => {
             console.log({printingConfiguration})
             context.getServiceByName<PrinterService>('printer').printingConfiguration =
-                printingConfiguration
+                JSON.parse(printingConfiguration)
         }
     )
 
@@ -338,6 +338,8 @@ async function startApplication(): Promise<void> {
         optimizer.watchWindowShortcuts(window)
     })
 
+    initializeIpcHandlers()
+
     mainWorkerProcess = context.registerProcess('worker', processService.createProcess('worker', {
         mode: runtimeConfigService.isDev ? 'development' : 'production',
         window: {
@@ -360,8 +362,6 @@ async function startApplication(): Promise<void> {
     await initializeClients()
 
     await context.getServiceByName<TicketService>('ticket').startListeningForNewTickets()
-
-    initializeIpcHandlers()
 
     mainUiProcess.setTitle(translationService.translate('globals.applicationName'))
 
@@ -424,7 +424,7 @@ if (!gotTheLock) {
  * initialization and is ready to create browser windows.
  * Some APIs can only be used after this event occurs.
  */
-app.whenReady().then(async () => await startApplication())
+// app.whenReady().then(async () => await startApplication())
 
 /**
  * Hides the main window, except on macOS.

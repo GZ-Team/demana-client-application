@@ -1,11 +1,10 @@
-import { useCookies } from '@vueuse/integrations/useCookies'
-
 import BackofficeGraphQLClient from '../clients/backofficeClient'
 
 import { useAuthStore } from '../stores/authStore'
 import { useAppStore } from '../stores/appStore'
 
 import useLogger from './useLogger'
+import useLocalStorage from './useLocalStorage'
 
 import { isDev } from '../utils/globals'
 import { decodeJWT } from '../utils/tokenUtils'
@@ -36,23 +35,21 @@ export default function useGraphQl(): useGraphQlValue {
 
     const logger = useLogger({ service: 'useGraphQl' })
 
-    function getCookie(key: string): string {
-        const cookies = useCookies([key])
-
-        console.log({ cookie: cookies.get(key), key })
-
-        return cookies.get(key)
-    }
-
     function getRequestHeaders(): DemanaRequestHeaders {
-        return Object.entries({
-            authorization: getCookie(accessTokenName),
-            'refresh-token': getCookie(refreshTokenName),
+        const [accessToken, refreshToken] = useLocalStorage().getItems([accessTokenName, refreshTokenName])
+
+        const headers =  Object.entries({
+            authorization: accessToken,
+            'refresh-token': refreshToken,
             'demana-client-id': useAppStore().appId
         } as DemanaRequestHeaders).filter(([, value]) => value).reduce((headers, [name, value]) => ({
             ...headers,
             [name]: value
         }), {} as DemanaRequestHeaders)
+
+        useLogger({service: 'Request-headers'}).info(JSON.stringify(headers))
+
+        return headers
     }
 
     function isExpiredJWT(token: string): boolean {
@@ -90,8 +87,13 @@ export default function useGraphQl(): useGraphQlValue {
                         return false
                     }
 
-                    const hasAuthenticationExpired = isExpiredJWT(getCookie(accessTokenName))
+                    const accessToken = useLocalStorage().getItem(accessTokenName)
 
+                    if (!accessToken) {
+                        return true
+                    }
+
+                    const hasAuthenticationExpired = isExpiredJWT(accessToken)
                     return !isRefreshMutation && hasAuthenticationExpired
                 }
             },

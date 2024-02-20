@@ -13,6 +13,7 @@ import { useVenueStore } from '@ui/stores/venueStore'
 import useTranslations from '@ui/composables/useTranslations'
 import useFeedback from '@ui/composables/useFeedback'
 import useLogger from '@ui/composables/useLogger'
+import useNotifications from '@ui/composables/useNotifications'
 
 import type { LoginForm } from '@generated/graphql'
 
@@ -43,7 +44,7 @@ const { venue } = storeToRefs(venueStore)
 const { login, getUser } = authStore
 const { registerDesktopApplication } = authStore
 const { translate, createTranslatedValidator } = useTranslations('pages.login.sections.loginForm')
-const { clearNotifications } = useFeedback()
+const { clearNotifications } = useNotifications()
 
 const vuelidate = useVuelidate(
     {
@@ -108,10 +109,9 @@ async function handleLogin(): Promise<void> {
             if (redirectRouteName) {
                 // this.$removeSessionStorageValue(this.$config.redirectRouteCookieName);
                 await router.push({ name: redirectRouteName })
-            } else if (venue.value!.paused) {
+            } else if (venue.value?.paused) {
                 await router.push({ name: 'paused-subscription' })
             } else {
-                console.log('HERE')
                 await router.push({ path: '/configuration' })
             }
         }

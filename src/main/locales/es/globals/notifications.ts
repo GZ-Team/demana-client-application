@@ -37,6 +37,9 @@ export default {
             'login-success': '¡Bienvenido!',
             // TODO: Translate
             'register-desktop-application': 'This application was successfully attached to your Demana account!'
+        },
+        'printer-configuration': {
+            'save-success': 'La impresora se ha guardado con éxito!'
         }
     }
 }

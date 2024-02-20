@@ -36,7 +36,6 @@ const loggerOptions: {
 
 addColors(loggerOptions.colors)
 
-const rootLogger: Logger = createLogger({ levels: loggerOptions.levels })
 const serviceLoggers: Record<string, Logger> = {}
 
 export default function useLogger(options?: { service: string; isMainProcess?: boolean }): {
@@ -44,9 +43,9 @@ export default function useLogger(options?: { service: string; isMainProcess?: b
 } {
     const { service, isMainProcess } = options || {}
 
-    function createChildLogger(serviceName: string): Logger {
+    function createServiceLogger(serviceName: string): Logger {
         try {
-            const childLogger = rootLogger.child({})
+            const serviceLogger = createLogger({ levels: loggerOptions.levels })
 
             const consoleTransport = new transports.Console({
                 format: combine(
@@ -68,10 +67,10 @@ export default function useLogger(options?: { service: string; isMainProcess?: b
                 level: 'info'
             })
 
-            childLogger.add(consoleTransport)
-            childLogger.add(fileTransport)
+            serviceLogger.add(consoleTransport)
+            serviceLogger.add(fileTransport)
 
-            return childLogger
+            return serviceLogger
         } catch (exception) {
             throw new Error(`Failed to create a child Logger instance: ${(exception as Error).message}`, {
                 cause: exception
@@ -87,7 +86,7 @@ export default function useLogger(options?: { service: string; isMainProcess?: b
             : serviceName
 
             if (!serviceLoggers[serviceName]) {
-                serviceLoggers[serviceName] = createChildLogger(serviceName)
+                serviceLoggers[serviceName] = createServiceLogger(serviceName)
             }
 
             return serviceLoggers[serviceName]
