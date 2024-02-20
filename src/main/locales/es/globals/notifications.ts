@@ -39,7 +39,8 @@ export default {
             'register-desktop-application': 'This application was successfully attached to your Demana account!'
         },
         'printer-configuration': {
-            'save-success': 'La impresora se ha guardado con éxito!'
+            'save-success': 'La impresora se ha guardado con éxito!',
+            'delete-venue-printer': 'La impresora se ha eliminado'
         }
     }
 }

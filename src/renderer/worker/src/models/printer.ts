@@ -1,8 +1,25 @@
-export class Printer {
-    constructor(private device: USBDevice) {}
+export type PrinterType = 'usb' | 'serial'
 
-    async printText(text): Promise<USBOutTransferResult> {
+export class Printer {
+    constructor(private device: USBDevice | SerialPort, private type: PrinterType) {}
+
+    async printText(text): Promise<void> {
         try {
+            if (this.type === 'usb') {
+                this.printUsbText(text)
+            }  else if (this.type === 'serial') {
+                this.printSerialText(text)
+            } else {
+                throw new Error('this printer is not supported')
+            }
+        } catch (exception) {
+            throw new Error(`Failed to print text: ${exception}`, { cause: exception })
+        }
+    }
+
+    async printUsbText(text): Promise<void> {
+        try {
+            const printerDevice = this.device as USBDevice
             // const textBytes = new Uint8Array(stringToBytes(text))
             // const textBuffer = Buffer.from(text, 'utf8')
 
@@ -11,11 +28,11 @@ export class Printer {
                 printerConfiguration,
                 printerInterface,
                 printerEndpoint: { endpointNumber }
-            } = this.getPrintSessionProperties('out')
+            } = this.getUsbPrintSessionProperties('out')
 
-            await this.device.open()
-            await this.device.selectConfiguration(printerConfiguration.configurationValue)
-            await this.device.claimInterface(printerInterface.interfaceNumber)
+            await printerDevice.open()
+            await printerDevice.selectConfiguration(printerConfiguration.configurationValue)
+            await printerDevice.claimInterface(printerInterface.interfaceNumber)
 
             // const script = new EscPosScript().printText('Demana').complete()
 
@@ -39,20 +56,35 @@ export class Printer {
             //     value: 0
             // }, textBytes.length)
 
-            const result = await this.device.transferOut(endpointNumber, text)
+            await printerDevice.transferOut(endpointNumber, text)
 
-            await this.device.releaseInterface(printerInterface.interfaceNumber)
+            await printerDevice.releaseInterface(printerInterface.interfaceNumber)
 
-            await this.device.close()
-
-            return result
+            await printerDevice.close()
         } catch (exception) {
             throw new Error(`Failed to print text: ${exception}`, { cause: exception })
         }
     }
 
-    private getPrinterConfiguration(direction: 'in' | 'out'): USBConfiguration | undefined {
-        return this.device.configurations.find(
+    async printSerialText(text): Promise<void> {
+        try {
+            const printerdevice = this.device as SerialPort
+
+            const writer = printerdevice.writable.getWriter()
+            await writer.write(text)
+
+            writer.releaseLock()
+
+            await printerdevice.close()
+        } catch (exception) {
+            throw new Error(`Failed to print text: ${exception}`, { cause: exception })
+        }
+    }
+
+    private getUsbPrinterConfiguration(direction: 'in' | 'out'): USBConfiguration | undefined {
+        const printerDevice = this.device as USBDevice
+
+        return printerDevice.configurations.find(
             ({ interfaces }) =>
                 !!interfaces.find(
                     ({ alternate }) =>
@@ -80,13 +112,13 @@ export class Printer {
         )
     }
 
-    private getPrintSessionProperties(direction: 'in' | 'out'): {
+    private getUsbPrintSessionProperties(direction: 'in' | 'out'): {
     printerConfiguration: USBConfiguration;
     printerInterface: USBInterface;
     printerEndpoint: USBEndpoint;
   } {
         try {
-            const selectedConfiguration = this.getPrinterConfiguration(direction)
+            const selectedConfiguration = this.getUsbPrinterConfiguration(direction)
 
             if (!selectedConfiguration) {
                 throw new Error('no suitable configuration found')

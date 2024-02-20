@@ -52,7 +52,7 @@ const usbPrintersAsOptions = computed(() =>
 )
 
 const printersAsOptions = computed(() =>
-    [...usbPrintersAsOptions.value]
+    [...usbPrintersAsOptions.value, ...serialPrintersAsOptions.value]
 )
 
 const computedSelectedPrinterId = computed({
@@ -208,9 +208,9 @@ onMounted(async () => {
     if (printingConfiguration.value) {
         const { automatic, paperMargin, paperWidth } = printingConfiguration.value
 
-        localPrinterConfiguration.automatic = automatic
-        localPrinterConfiguration.paperMargin = paperMargin
-        localPrinterConfiguration.paperWidth = paperWidth
+        localPrinterConfiguration.automatic = automatic || null
+        localPrinterConfiguration.paperMargin = paperMargin || null
+        localPrinterConfiguration.paperWidth = paperWidth || null
     }
 })
 </script>

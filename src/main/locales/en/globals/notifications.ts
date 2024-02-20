@@ -29,7 +29,8 @@ export default {
             'register-desktop-application': 'This application was successfully attached to your Demana account!'
         },
         'printer-configuration': {
-            'save-success': 'Your ticket printer has been saved!'
+            'save-success': 'Your ticket printer has been saved!',
+            'delete-venue-printer': 'Your ticket printer has been removed!'
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Printer } from '../models/printer'
+import { Printer, PrinterType } from '../models/printer'
 
 import useLogger from '../utils/loggingUtils'
 
@@ -23,16 +23,20 @@ export default class PrinterService {
         )
 
         const selectedSerialPrinter = allSerialPrinters
-            .map(port => port.getInfo())
-            .find(({productId}) => productId === selectedPrinterId.toString())
+            .find(port => port.getInfo().productId === selectedPrinterId.toString())
 
         const selectedPrinter = selectedUsbPrinter ?? selectedSerialPrinter
+        let type = 'usb'
 
-        if (!selectedUsbPrinter) {
+        if (selectedSerialPrinter) {
+            type = 'serial'
+        }
+
+        if (!selectedPrinter) {
             return null
         }
 
-        return new Printer(selectedUsbPrinter)
+        return new Printer(selectedPrinter, type as PrinterType)
     }
 
     async print(content): Promise<void> {
@@ -42,8 +46,6 @@ export default class PrinterService {
             if (!selectedPrinter) {
                 throw new Error('There is no selected printer.')
             }
-
-            console.log(content)
 
             await selectedPrinter.printText(content)
         } catch (exception) {

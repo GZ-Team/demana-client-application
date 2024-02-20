@@ -107,7 +107,7 @@ export async function handleGraphQlMutation<T>(
 
             feedback.data = keyData as T
             feedback.success = success ?? true
-            feedback.message = message ?? successMessage ?? defaultMessages.success
+            feedback.message =  successMessage ?? message ?? defaultMessages.success
 
             if (feedback.success && !!onSuccess) {
                 const updatedFeedback = await onSuccess(keyData, feedback)
@@ -188,7 +188,7 @@ export async function handleGraphQlQuery<T>(
 
             feedback.data = keyData as T
             feedback.success = success ?? true
-            feedback.message = message ?? successMessage ?? defaultMessages.success
+            feedback.message =  successMessage ?? message ?? defaultMessages.success
 
             if (feedback.success && onSuccess) {
                 const updatedFeedback = await onSuccess(keyData, feedback)
