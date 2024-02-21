@@ -312,12 +312,6 @@ export default class SessionService extends RuntimeConfigService implements Dema
         try {
             this.logger.info(`Setting a cookie with the name '${name}.`)
 
-            console.log({option: {
-                ...this.defaultCookieDetails,
-                ...options,
-                location: this.uiProcess.webContents
-            }})
-
             await this.cookies.set({
                 ...this.defaultCookieDetails,
                 ...(options || {}),

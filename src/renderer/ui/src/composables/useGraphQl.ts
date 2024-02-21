@@ -83,7 +83,7 @@ export default function useGraphQl(): useGraphQlValue {
                 refreshWhen: async (request): Promise<boolean> => {
                     const isRefreshMutation = request.operationName === 'refresh'
 
-                    if (!isRefreshMutation) {
+                    if (isRefreshMutation) {
                         return false
                     }
 
@@ -93,7 +93,10 @@ export default function useGraphQl(): useGraphQlValue {
                         return true
                     }
 
+
+
                     const hasAuthenticationExpired = isExpiredJWT(accessToken)
+
                     return !isRefreshMutation && hasAuthenticationExpired
                 }
             },

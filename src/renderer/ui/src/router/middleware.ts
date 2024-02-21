@@ -23,14 +23,10 @@ function beforeEach(router: Router) {
         const {appId} = storeToRefs(appStore)
         const {getAppId} = appStore
 
-        console.log('HERE!')
-
         if (!to.meta.$public && !isLoggedIn.value) {
             await logout()
             return { name: loginPageRoute.name, replace: true } as RouteLocationRaw
         }
-
-        console.log('HERE 2!')
 
         if (isLoggedIn.value && !user.value) {
             await getUser()

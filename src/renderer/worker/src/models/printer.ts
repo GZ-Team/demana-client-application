@@ -6,9 +6,9 @@ export class Printer {
     async printText(text): Promise<void> {
         try {
             if (this.type === 'usb') {
-                this.printUsbText(text)
+                await this.printUsbText(text)
             }  else if (this.type === 'serial') {
-                this.printSerialText(text)
+                await this.printSerialText(text)
             } else {
                 throw new Error('this printer is not supported')
             }
@@ -69,6 +69,8 @@ export class Printer {
     async printSerialText(text): Promise<void> {
         try {
             const printerdevice = this.device as SerialPort
+
+            await printerdevice.open({ baudRate: 9600 })
 
             const writer = printerdevice.writable.getWriter()
             await writer.write(text)

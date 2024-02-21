@@ -130,7 +130,6 @@ function initializeIpcHandlers(): void {
     ipcMain.on(
         'setPrintingConfiguration',
         (_event, printingConfiguration: string): void => {
-            console.log({printingConfiguration})
             context.getServiceByName<PrinterService>('printer').printingConfiguration =
                 JSON.parse(printingConfiguration)
         }

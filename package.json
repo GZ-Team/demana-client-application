@@ -13,6 +13,7 @@
     "preinstall": "npx only-allow pnpm",
     "postinstall": "electron-builder install-app-deps",
     "dev": "electron-vite dev",
+    "dev:inspect": "electron-vite --inspect --sourcemap dev",
     "dev:watch": "electron-vite dev --watch",
     "preview": "electron-vite preview",
     "test": "pnpm test:jest && pnpm test:playwright",

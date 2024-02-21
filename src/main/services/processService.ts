@@ -1,5 +1,5 @@
 import type { BrowserWindowConstructorOptions, NativeImage } from 'electron'
-import { BrowserWindow, shell } from 'electron'
+import { BrowserWindow, Menu, shell } from 'electron'
 import { join } from 'path'
 import type { DemanaProcessType } from '@root/types'
 import type { DemanaService } from '../types'
@@ -55,7 +55,7 @@ export default class ProcessService implements DemanaService {
                 webPreferences: {
                     ...this.commonProcessProperties.webPreferences,
                     preload: join(__dirname, window.preload),
-                    devTools: true
+                    devTools: isDev
                 }
             })
 
@@ -89,10 +89,10 @@ export default class ProcessService implements DemanaService {
                 uiProcess.loadFile(window.content)
             }
 
-            if (true) {
+            if (isDev) {
                 uiProcess.webContents.openDevTools()
             } else {
-                // Menu.setApplicationMenu(null)
+                Menu.setApplicationMenu(null)
             }
 
             return uiProcess

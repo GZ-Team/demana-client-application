@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useVuelidate } from '@vuelidate/core'
 import { between, required } from '@vuelidate/validators'
+import { isNil } from 'lodash'
 
 import { usePrinterStore } from '@ui/stores/printerStore'
 
@@ -38,9 +39,11 @@ const localPrinterConfiguration = reactive<{
 const serialPrintersAsOptions = computed(() =>
     serialPrinters.value
         .map(port => port.getInfo())
-        .map(({ productId, product }) => ({
-            key: productId,
-            label: product?.replaceAll('\u0000', '')
+        .map(({productId, usbProductId, product,serialNumber,locationId, ...otherProps}) => ({
+            key: Object.values({productId, usbProductId, product,serialNumber,locationId}).find(value => !isNil(value)),
+            label: Object.entries({productId, usbProductId, product,serialNumber,locationId, ...otherProps})
+                .filter(([,value]) => !isNil(value))
+                .reduce((label, [key, value]) => `${label}:${key}:${value}` , '')
         }))
 )
 
@@ -203,7 +206,7 @@ function goBack(): void {
 onMounted(async () => {
     await Promise.all([loadAllPrinters(), loadSelectedPrinterId(), loadPrintingConfiguration()])
 
-    console.log({ printers: usbPrinters.value })
+    console.log({ printers: usbPrinters.value, serialInfo: serialPrinters.value.map(port => JSON.stringify(port.getInfo())), serial: serialPrinters.value })
 
     if (printingConfiguration.value) {
         const { automatic, paperMargin, paperWidth } = printingConfiguration.value

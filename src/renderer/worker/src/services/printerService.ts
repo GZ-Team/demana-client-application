@@ -12,8 +12,6 @@ export default class PrinterService {
             navigator.serial.getPorts()
         ])
 
-        console.log({selectedPrinterId, allUsbPrinters})
-
         if (!selectedPrinterId) {
             return null
         }
@@ -23,18 +21,24 @@ export default class PrinterService {
         )
 
         const selectedSerialPrinter = allSerialPrinters
-            .find(port => port.getInfo().productId === selectedPrinterId.toString())
+            .find(port => Object.values(port.getInfo())
+                .map(detail => `${detail}`)
+                .includes(`${selectedPrinterId}`)
+            )
 
-        const selectedPrinter = selectedUsbPrinter ?? selectedSerialPrinter
+        let selectedPrinter: USBDevice | SerialPort | undefined = selectedUsbPrinter
         let type = 'usb'
 
-        if (selectedSerialPrinter) {
+        if (!selectedUsbPrinter && selectedSerialPrinter) {
+            selectedPrinter = selectedSerialPrinter
             type = 'serial'
         }
 
         if (!selectedPrinter) {
             return null
         }
+
+        console.log({selectedPrinter, type})
 
         return new Printer(selectedPrinter, type as PrinterType)
     }

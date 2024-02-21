@@ -1,5 +1,12 @@
 appId: digital.demana.client
-productName: demana-client-application
+productName: Demana Desktop Application
+artifactName: demana-desktop-application-${version}-setup.${ext}
+protocols:
+    - name: Demana Desktop
+      schemes:
+        - demana-desktop
+electronLanguages:
+  - en-US
 directories:
   buildResources: build
 files:
@@ -16,17 +23,9 @@ files:
 asarUnpack:
   - resources/**
 afterSign: build/notarize.js
-win:
-  executableName: demana-client-application
-  protocols:
-    - name: Demana Desktop
-      schemes:
-        - demana-desktop
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  deleteAppDataOnUninstall: true
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -34,23 +33,10 @@ mac:
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  protocols:
-    - name: Demana Desktop
-      schemes:
-        - demana-desktop
-dmg:
-  artifactName: ${name}-${version}.${ext}
 linux:
   target:
     - AppImage
     - snap
     - deb
-  maintainer: demana.digital
   category: Utility
-  protocols:
-    - name: Demana Desktop
-      schemes:
-        - demana-desktop
-appImage:
-  artifactName: ${name}-${version}.${ext}
 npmRebuild: false

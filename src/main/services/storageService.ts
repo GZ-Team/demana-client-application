@@ -49,7 +49,6 @@ export default class StorageService implements DemanaService {
         this.logger.info(
             `Writing the property "${key}" to the configuration file "${this.storageFilePath}".`
         )
-        console.log({newValue: { ...this.storageValue, [key]: value }})
         this.storageValue = { ...this.storageValue, [key]: value }
     }
 

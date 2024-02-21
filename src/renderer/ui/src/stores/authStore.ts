@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-import { cloneDeep } from 'lodash'
 
 import { useAppStore } from '@ui/stores/appStore'
 import { useVenueStore } from '@ui/stores/venueStore'
@@ -45,18 +44,13 @@ export const useAuthStore = defineStore('authStore', {
                             return
                         }
 
-                        const logger = useLogger({service: 'login-request'})
-
                         const { token, refreshToken } = data
 
                         if (token?.value && refreshToken?.value) {
                             const localStorage = useLocalStorage()
 
                             localStorage.setItem(accessTokenName, token.value)
-                            logger.info(`Setting the token '${accessTokenName}' with the value '${localStorage.getItem(accessTokenName)}'`)
-
                             localStorage.setItem(refreshTokenName, refreshToken.value)
-                            logger.info(`Setting the token '${refreshTokenName}' with the value '${localStorage.getItem(refreshTokenName)}'`)
                         }
                     },
                     successMessage: 'success.authentication.login-success'
@@ -67,7 +61,28 @@ export const useAuthStore = defineStore('authStore', {
         },
         async refresh(): Promise<void> {
             try {
-                await window.api.refresh()
+                await useGraphQl().mutate<AuthenticationFeedback>({
+                    mutation: 'authentication.refresh',
+                    key: 'refresh',
+                    onSuccess: async (data) => {
+                        if (!data) {
+                            return
+                        }
+
+                        const { token, refreshToken } = data
+
+                        const logger = useLogger({service: 'refresh-request'})
+                        logger.info('Refreshed!')
+
+                        if (token?.value && refreshToken?.value) {
+                            const localStorage = useLocalStorage()
+
+                            localStorage.setItem(accessTokenName, token.value)
+                            localStorage.setItem(refreshTokenName, refreshToken.value)
+                        }
+                    },
+                    successMessage: 'success.authentication.login-success'
+                })
             } catch (exception) {
                 throw new Error(`Failed to refresh authentication: ${(exception as Error).message}`, {
                     cause: exception
@@ -96,7 +111,7 @@ export const useAuthStore = defineStore('authStore', {
         },
         async logout(): Promise<void> {
             try {
-                await window.api.logout()
+                useLocalStorage().removeItem(accessTokenName)
             } catch (exception) {
                 throw new Error(`Failed to logout: ${(exception as Error).message}`, { cause: exception })
             }
@@ -109,7 +124,7 @@ export const useAuthStore = defineStore('authStore', {
                 })
 
                 if (data) {
-                    const { venue, ...userProperties } = cloneDeep(data)
+                    const { venue, ...userProperties } = data
 
                     this.user = userProperties
 
