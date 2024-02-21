@@ -3,11 +3,17 @@ import { storeToRefs } from 'pinia'
 import { useAppStore } from '@ui/stores/appStore'
 import { useAuthStore } from '@ui/stores/authStore'
 
+import useLocalStorage from '@ui/composables/useLocalStorage'
+
 import { DEFAULT_ROUTE, loginPageRoute } from './routes'
 
 import type { RouteLocationRaw, Router } from 'vue-router'
 
 type NavigationGuardReturn = void | Error | RouteLocationRaw | boolean;
+
+const {
+    VITE_ACCESS_TOKEN_NAME: accessTokenName,
+} = import.meta.env
 
 let redirectionRouteName: string | undefined | null = null
 let isRedirecting = false
@@ -17,22 +23,24 @@ function beforeEach(router: Router) {
         const authStore = useAuthStore()
         const appStore = useAppStore()
 
-        const { isLoggedIn, user } = storeToRefs(authStore)
+        const {user} = storeToRefs(authStore)
         const { logout, getUser } = authStore
 
         const {appId} = storeToRefs(appStore)
         const {getAppId} = appStore
 
-        if (!to.meta.$public && !isLoggedIn.value) {
+        const isLoggedIn = appId.value && useLocalStorage().getItem(accessTokenName)
+
+        if (!to.meta.$public && !isLoggedIn) {
             await logout()
             return { name: loginPageRoute.name, replace: true } as RouteLocationRaw
         }
 
-        if (isLoggedIn.value && !user.value) {
+        if (isLoggedIn && !user.value) {
             await getUser()
         }
 
-        if (isLoggedIn.value && !appId.value) {
+        if (isLoggedIn && !appId.value) {
             await getAppId()
         }
 
@@ -44,7 +52,7 @@ function beforeEach(router: Router) {
         if (redirectionRouteName && router.hasRoute(redirectionRouteName) && !isRedirecting) {
             isRedirecting = true
             return { name: redirectionRouteName, replace: true } as RouteLocationRaw
-        } else if (to.name === loginPageRoute.name && isLoggedIn.value) {
+        } else if (to.name === loginPageRoute.name && isLoggedIn) {
             return { name: DEFAULT_ROUTE.name, replace: true } as RouteLocationRaw
         }
 
